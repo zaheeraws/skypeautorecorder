@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace SkypeAutoRecorder.Settings
+namespace SkypeAutoRecorder.Configuration
 {
     [Serializable]
-    internal class Filter
+    public class Filter
     {
         [XmlAttribute("contacts")]
         public string Contacts { get; set; }

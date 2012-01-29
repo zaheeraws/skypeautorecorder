@@ -40,14 +40,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -67,10 +63,9 @@
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Settings\Settings.cs" />
+    <Compile Include="Configuration\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Settings\Configuration.cs" />
     <Compile Include="Core\ConversationEventArgs.cs" />
     <Compile Include="Core\SkypeConnector.Watcher.cs" />
     <Compile Include="Core\SkypeConnector.Hooks.cs" />
@@ -85,7 +80,7 @@
     <Compile Include="Core\WinApi\WinApiConstants.cs" />
     <Compile Include="Core\WinApi\WinApiException.cs" />
     <Compile Include="Core\WinApi\WinApiWrapper.cs" />
-    <Compile Include="Settings\Filter.cs" />
+    <Compile Include="Configuration\Filter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
