@@ -64,8 +64,13 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Settings\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Settings\Configuration.cs" />
     <Compile Include="Core\ConversationEventArgs.cs" />
     <Compile Include="Core\SkypeConnector.Watcher.cs" />
     <Compile Include="Core\SkypeConnector.Hooks.cs" />
@@ -80,6 +85,7 @@
     <Compile Include="Core\WinApi\WinApiConstants.cs" />
     <Compile Include="Core\WinApi\WinApiException.cs" />
     <Compile Include="Core\WinApi\WinApiWrapper.cs" />
+    <Compile Include="Settings\Filter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -114,6 +120,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MainIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
