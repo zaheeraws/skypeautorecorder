@@ -1,24 +1,42 @@
-﻿<Window x:Class="SkypeAutoRecorder.SettingsWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Settings" WindowStartupLocation="CenterScreen"
-        Icon="/SkypeAutoRecorder;component/Images/MainIcon.ico" ResizeMode="NoResize">
-    <Grid>
-        <StackPanel Margin="10">
-            <CheckBox Margin="3">
-                <TextBlock Text="Autostart with Windows" />
-            </CheckBox>
-
-            <CheckBox Margin="3">
-                <TextBlock Text="Record unfiltered conversations to:" />
-            </CheckBox>
-            <TextBox Margin="20,3,3,3" />
-            <TextBlock Text="Don't record conversations with contacts:" Margin="3,3,3,1" />
-            <TextBox Margin="3,1,3,3" />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,2,0">
-                <Button Margin="1" Padding="8,3">OK</Button>
-                <Button Margin="1" Padding="8,3">Cancel</Button>
-            </StackPanel>
-        </StackPanel>
-    </Grid>
+﻿<Window x:Class="SkypeAutoRecorder.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Settings" WindowStartupLocation="CenterScreen"
+        Height="300" Width="500" Icon="/SkypeAutoRecorder;component/Images/MainIcon.ico" ResizeMode="CanResize"
+        MinHeight="280" MinWidth="280">
+  <Grid Margin="10" Name="mainGrid">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <CheckBox Margin="3">
+      <TextBlock Text="Autostart with Windows" />
+    </CheckBox>
+    <TextBlock Grid.Row="1" Margin="3,3,3,1" Text="Filters (contacts/folders):" />
+    <ListBox Grid.Row="2" Margin="3,1,3,3" ItemsSource="{Binding Filters}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <GridSplitter></GridSplitter>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <StackPanel Grid.Row="3">
+      <CheckBox Margin="3">
+        <TextBlock Text="Record unfiltered conversations to:" />
+      </CheckBox>
+      <TextBox Margin="20,3,3,3" />
+      <TextBlock Text="Don't record conversations with contacts:" Margin="3,3,3,1" />
+      <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,2,0">
+        <Button Margin="1" Padding="8,3" IsDefault="True">OK</Button>
+        <Button Margin="1" Padding="8,3" IsCancel="True">Cancel</Button>
+      </StackPanel>
+    </StackPanel>
+  </Grid>
 </Window>

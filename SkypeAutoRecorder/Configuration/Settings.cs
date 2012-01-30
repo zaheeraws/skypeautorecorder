@@ -2,20 +2,23 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
 
 namespace SkypeAutoRecorder.Configuration
 {
     [Serializable]
-    public sealed class Settings
+    public class Settings : ICloneable
     {
         private const string DateTimePlaceholder = "{date-time}";
         private const string ContactPlaceholder = "{contact}";
+        private const string DateTimeFormat = "yyyy-MM-dd HH.mm";
 
+        /// <summary>
+        /// File name where application settings are stored.
+        /// </summary>
         private static readonly string SettingsFileName = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SkypeAutoRecorder\\Settings.xml");
-
-        private static readonly Settings SettingsInstance;
 
         static Settings()
         {
@@ -25,31 +28,21 @@ namespace SkypeAutoRecorder.Configuration
                 var serializer = new XmlSerializer(typeof(Settings));
                 using (var reader = new StreamReader(SettingsFileName))
                 {
-                    SettingsInstance = (Settings)serializer.Deserialize(reader);
+                    Current = (Settings)serializer.Deserialize(reader);
                 }
             }
             else
             {
-                SettingsInstance = new Settings();
+                Current = new Settings();
             }
-            
-            if (SettingsInstance.Filters == null)
+
+            if (Current.Filters == null)
             {
-                SettingsInstance.Filters = new ObservableCollection<Filter>();
+                Current.Filters = new ObservableCollection<Filter>();
             }
         }
 
-        private Settings()
-        {
-        }
-
-        public static Settings Instance
-        {
-            get
-            {
-                return SettingsInstance;
-            }
-        }
+        public static Settings Current { get; set; }
 
         #region Serializable fields
 
@@ -78,15 +71,15 @@ namespace SkypeAutoRecorder.Configuration
 
             // Save settings to XML.
             var serializer = new XmlSerializer(typeof(Settings));
-            using (var writer = new StreamWriter("D:\\Settings.xml"))
+            using (var writer = new StreamWriter(SettingsFileName))
             {
-                serializer.Serialize(writer, SettingsInstance);
+                serializer.Serialize(writer, Current);
             }
         }
 
         public static string RenderFileName(string rawFileName, string contact, DateTime dateTime)
         {
-            var fileName = rawFileName.Replace(DateTimePlaceholder, dateTime.ToString("yyyy-MM-dd HH.mm"));
+            var fileName = rawFileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
             return fileName.Replace(ContactPlaceholder, contact);
         }
 
@@ -102,6 +95,23 @@ namespace SkypeAutoRecorder.Configuration
         {
             var filter = Filters.FirstOrDefault(f => ContactsContain(f.Contacts, contact));
             return filter == null ? null : RenderFileName(filter.RawFileName, contact, dateTime);
+        }
+
+        /// <summary>
+        /// Creates a new object that is a copy of the current instance.
+        /// </summary>
+        /// <returns>
+        /// A new object that is a copy of this instance.
+        /// </returns>
+        public object Clone()
+        {
+            var formatter = new BinaryFormatter();
+            using (var stream = new MemoryStream())
+            {
+                formatter.Serialize(stream, Current);
+                stream.Position = 0;
+                return formatter.Deserialize(stream);
+            }
         }
     }
 }

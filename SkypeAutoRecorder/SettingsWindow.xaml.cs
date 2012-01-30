@@ -10,17 +10,23 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using SkypeAutoRecorder.Configuration;
 
 namespace SkypeAutoRecorder
 {
     /// <summary>
     /// Interaction logic for SettingsWindow.xaml
     /// </summary>
-    public partial class SettingsWindow : Window
+    public partial class SettingsWindow
     {
-        public SettingsWindow()
+        public SettingsWindow(Settings currentSettings)
         {
             InitializeComponent();
+
+            NewSettings = currentSettings;
+            mainGrid.DataContext = NewSettings;
         }
+
+        public Settings NewSettings { get; set; }
     }
 }

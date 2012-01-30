@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Forms;
+using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core;
 
 namespace SkypeAutoRecorder
@@ -39,6 +40,7 @@ namespace SkypeAutoRecorder
 
             // Context menu.
             trayIcon.ContextMenu.MenuItems.Add("Settings", onSettingsClick);
+            trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
 
@@ -95,21 +97,39 @@ namespace SkypeAutoRecorder
             }
         }
 
-        #region Settings window
+        #region Windows
 
         private SettingsWindow _settingsWindow;
+        // private AboutWindow _aboutWindow;
 
         private void onSettingsClick(object sender, EventArgs eventArgs)
         {
-            if (_settingsWindow == null)
+            if (_settingsWindow == null || _settingsWindow.Visibility != Visibility.Visible)
             {
-                _settingsWindow = new SettingsWindow();
+                var settingsCopy = (Settings)Settings.Current.Clone();
+                settingsCopy.DefaultRawFileName = "123456";
+                settingsCopy.ExcludedContacts = "Exclegfdfg sdfg dfg df gdfg";
+                settingsCopy.RecordUnfiltered = true;
+                settingsCopy.Filters.Add(new Filter { Contacts = "Con sdg sfdg dg", RawFileName = "Raw sdfsdfgd" });
+                _settingsWindow = new SettingsWindow(settingsCopy);
+                if (_settingsWindow.ShowDialog() == true)
+                {
+                    Settings.Current = _settingsWindow.NewSettings;
+                }
             }
+        }
 
-            if (_settingsWindow.Visibility != Visibility.Visible)
-            {
-                _settingsWindow.ShowDialog();
-            }
+        private void onAboutClick(object sender, EventArgs eventArgs)
+        {
+            // if (_aboutWindow == null)
+            // {
+            //     _aboutWindow = new AboutWindow();
+            // }
+
+            // if (_aboutWindow.Visibility != Visibility.Visible)
+            // {
+            //     _aboutWindow.ShowDialog();
+            // }
         }
 
         #endregion
