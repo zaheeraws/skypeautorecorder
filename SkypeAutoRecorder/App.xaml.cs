@@ -104,19 +104,14 @@ namespace SkypeAutoRecorder
 
         private void onSettingsClick(object sender, EventArgs eventArgs)
         {
-            if (_settingsWindow == null || _settingsWindow.Visibility != Visibility.Visible)
+            if (_settingsWindow != null && _settingsWindow.IsLoaded)
             {
-                var settingsCopy = (Settings)Settings.Current.Clone();
-                settingsCopy.DefaultRawFileName = "123456";
-                settingsCopy.ExcludedContacts = "Exclegfdfg sdfg dfg df gdfg";
-                settingsCopy.RecordUnfiltered = true;
-                settingsCopy.Filters.Add(new Filter { Contacts = "Con sdg sfdg dg", RawFileName = "Raw sdfsdfgd" });
-                _settingsWindow = new SettingsWindow(settingsCopy);
-                if (_settingsWindow.ShowDialog() == true)
-                {
-                    Settings.Current = _settingsWindow.NewSettings;
-                }
+                return;
             }
+
+            var settingsCopy = (Settings)Settings.Current.Clone();
+            _settingsWindow = new SettingsWindow(settingsCopy);
+            _settingsWindow.ShowDialog();
         }
 
         private void onAboutClick(object sender, EventArgs eventArgs)

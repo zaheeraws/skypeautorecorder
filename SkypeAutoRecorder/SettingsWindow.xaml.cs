@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using SkypeAutoRecorder.Configuration;
+﻿using SkypeAutoRecorder.Configuration;
 
 namespace SkypeAutoRecorder
 {
@@ -23,10 +11,15 @@ namespace SkypeAutoRecorder
         {
             InitializeComponent();
 
-            NewSettings = currentSettings;
+            NewSettings = currentSettings ?? new Settings();
             mainGrid.DataContext = NewSettings;
         }
 
         public Settings NewSettings { get; set; }
+
+        private void addButtonClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+            NewSettings.Filters.Add(new Filter());
+        }
     }
 }

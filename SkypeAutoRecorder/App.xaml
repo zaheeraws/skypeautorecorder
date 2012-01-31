@@ -1,7 +1,7 @@
 ﻿<Application x:Class="SkypeAutoRecorder.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Startup="appStartup" Exit="appExit">
+             Startup="appStartup" Exit="appExit" ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
 
     </Application.Resources>

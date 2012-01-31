@@ -10,6 +10,6 @@ namespace SkypeAutoRecorder.Configuration
         public string Contacts { get; set; }
 
         [XmlAttribute("fileName")]
-        public string RawFileName { get; set; }
+        public string RawFileNames { get; set; }
     }
 }

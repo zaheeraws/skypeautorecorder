@@ -44,6 +44,9 @@ namespace SkypeAutoRecorder.Configuration
 
         public static Settings Current { get; set; }
 
+        [XmlIgnore]
+        public bool Autostart { get; set; }
+
         #region Serializable fields
 
         [XmlArray("Filters")]
@@ -94,7 +97,7 @@ namespace SkypeAutoRecorder.Configuration
         public string GetFileName(string contact, DateTime dateTime)
         {
             var filter = Filters.FirstOrDefault(f => ContactsContain(f.Contacts, contact));
-            return filter == null ? null : RenderFileName(filter.RawFileName, contact, dateTime);
+            return filter == null ? null : RenderFileName(filter.RawFileNames, contact, dateTime);
         }
 
         /// <summary>
