@@ -10,11 +10,11 @@
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
-    <CheckBox Margin="3" IsChecked="{Binding Autostart}" HorizontalAlignment="Left">
-      <TextBlock Text="Autostart with Windows" />
-    </CheckBox>
+<!--    <CheckBox Margin="3" IsChecked="{Binding Autostart}" HorizontalAlignment="Left">-->
+<!--      <TextBlock Text="Autostart with Windows" />-->
+<!--    </CheckBox>-->
     <TextBlock Grid.Row="1" Margin="3,3,3,1" Text="Filters:" />
-    <ListView Grid.Row="2" Margin="3,1,3,3" ItemsSource="{Binding Filters}">
+    <ListView Grid.Row="2" Margin="3,1,3,3" ItemsSource="{Binding Filters, Mode=TwoWay}" Name="filtersListView">
       <ListView.ItemContainerStyle>
         <Style TargetType="ListViewItem">
           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -29,33 +29,31 @@
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
-          <GridViewColumn Width="195" Header="File names">
+          <GridViewColumn Width="195" Header="File name">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding RawFileNames}" />
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
-          <GridViewColumn>
-            <GridViewColumn.CellTemplate>
-              <DataTemplate>
-                <Button Padding="4,1">X</Button>
-              </DataTemplate>
-            </GridViewColumn.CellTemplate>
-          </GridViewColumn>
         </GridView>
       </ListView.View>
     </ListView>
-    <Button Grid.Row="3" Margin="3,1,3,3" Padding="8,3" HorizontalAlignment="Right" Click="addButtonClick">Add</Button>
+    <StackPanel Grid.Row="3" Margin="3,1,3,3" HorizontalAlignment="Right" Orientation="Horizontal">
+      <Button Padding="8,3" Margin="1,0" Click="addButtonClick">Add</Button>
+      <Button Padding="8,3" Margin="1,0" Click="removeButtonClick">Remove</Button>
+    </StackPanel>
     <StackPanel Grid.Row="4">
-      <CheckBox Margin="3" IsChecked="{Binding RecordUnfiltered}" HorizontalAlignment="Left">
+      <!--<CheckBox Margin="3" IsChecked="{Binding RecordUnfiltered}" HorizontalAlignment="Left">
         <TextBlock Text="Record unfiltered conversations to:" />
       </CheckBox>
       <TextBox Margin="20,3,3,3" Text="{Binding DefaultRawFileName}" />
       <TextBlock Text="Don't record conversations with contacts:" Margin="3,3,3,1" />
-      <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />
+      <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />-->
+      <TextBlock>Filter can contain few contacts separated with semicolon or comma.</TextBlock>
+      <TextBlock>Available placeholders for file name: {contact}, {date-time}.</TextBlock>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,2,0">
-        <Button Margin="1" Padding="8,3" IsDefault="True">OK</Button>
+        <Button Margin="1" Padding="8,3" IsDefault="True" Click="okButtonClick">OK</Button>
         <Button Margin="1" Padding="8,3" IsCancel="True">Cancel</Button>
       </StackPanel>
     </StackPanel>

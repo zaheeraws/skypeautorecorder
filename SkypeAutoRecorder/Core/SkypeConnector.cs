@@ -52,17 +52,29 @@ namespace SkypeAutoRecorder.Core
         }
 
         /// <summary>
-        /// Records the currently active call to the files.
+        /// Start record of the currently active call to the files.
         /// </summary>
         /// <param name="callInFileName">Name of the file for input channel (microphone).</param>
         /// <param name="callOutFileName">Name of the file for output channel.</param>
-        public void Record(string callInFileName, string callOutFileName)
+        public void StartRecord(string callInFileName, string callOutFileName)
         {
             var recordInCommand = string.Format(SkypeCommands.StartRecordInput, _currentCallNumber, callInFileName);
             var recordOutCommand = string.Format(SkypeCommands.StartRecordOutput, _currentCallNumber, callOutFileName);
 
             sendSkypeCommand(recordInCommand);
             sendSkypeCommand(recordOutCommand);
+        }
+
+        /// <summary>
+        /// End record of the currently active call.
+        /// </summary>
+        public void EndRecord()
+        {
+            var endRecordInCommand = string.Format(SkypeCommands.EndRecordInput, _currentCallNumber);
+            var endRecordOutCommand = string.Format(SkypeCommands.EndRecordOutput, _currentCallNumber);
+
+            sendSkypeCommand(endRecordInCommand);
+            sendSkypeCommand(endRecordOutCommand);
         }
 
         private void sendSkypeCommand(string command)

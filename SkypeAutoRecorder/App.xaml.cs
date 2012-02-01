@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Forms;
 using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core;
+using SkypeAutoRecorder.Core.Sound;
 
 namespace SkypeAutoRecorder
 {
@@ -77,14 +79,37 @@ namespace SkypeAutoRecorder
             _trayIcon.Icon = _disconnectedIcon;
         }
 
+        private string _recordFileName;
+        private string _tempInFileName;
+        private string _tempOutFileName;
         private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
         {
-            _trayIcon.Icon = _recordingIcon;
+            _recordFileName = Settings.Current.GetFileName(conversationEventArgs.CallerName, DateTime.Now);
+            if (_recordFileName != null)
+            {
+                _trayIcon.Icon = _recordingIcon;
+                _tempInFileName = Path.GetTempFileName();
+                _tempOutFileName = Path.GetTempFileName();
+                _connector.StartRecord(_tempInFileName, _tempOutFileName);
+            }
         }
 
         private void onConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
         {
-            _trayIcon.Icon = _connectedIcon;
+            if (_recordFileName != null)
+            {
+                _trayIcon.Icon = _connectedIcon;
+                _connector.EndRecord();
+                File.Delete(_tempInFileName);
+                File.Delete(_tempOutFileName);
+                _tempInFileName += ".in";
+                _tempOutFileName += ".out";
+                if (SoundProcessor.MergeChannels(_tempInFileName, _tempOutFileName, _recordFileName))
+                {
+                    File.Delete(_tempInFileName);
+                    File.Delete(_tempOutFileName);
+                }
+            }
         }
 
         private void appExit(object sender, ExitEventArgs e)
@@ -111,7 +136,17 @@ namespace SkypeAutoRecorder
 
             var settingsCopy = (Settings)Settings.Current.Clone();
             _settingsWindow = new SettingsWindow(settingsCopy);
+            _settingsWindow.Closed += settingsWindowOnClosed;
             _settingsWindow.ShowDialog();
+        }
+
+        private void settingsWindowOnClosed(object sender, EventArgs eventArgs)
+        {
+            if (_settingsWindow.DialogResult == true)
+            {
+                Settings.Current = _settingsWindow.NewSettings;
+                Settings.Save();
+            }
         }
 
         private void onAboutClick(object sender, EventArgs eventArgs)
@@ -125,6 +160,10 @@ namespace SkypeAutoRecorder
             // {
             //     _aboutWindow.ShowDialog();
             // }
+
+            System.Windows.MessageBox.Show(
+                "Skype Auto Recorder\r\nVersion 0.1\r\nAuthor: Miroshnichenko Kirill",
+                "About", MessageBoxButton.OK);
         }
 
         #endregion

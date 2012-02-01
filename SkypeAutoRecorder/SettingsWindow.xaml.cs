@@ -1,4 +1,5 @@
-﻿using SkypeAutoRecorder.Configuration;
+﻿using System.Windows.Controls;
+using SkypeAutoRecorder.Configuration;
 
 namespace SkypeAutoRecorder
 {
@@ -20,6 +21,19 @@ namespace SkypeAutoRecorder
         private void addButtonClick(object sender, System.Windows.RoutedEventArgs e)
         {
             NewSettings.Filters.Add(new Filter());
+        }
+
+        private void removeButtonClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (filtersListView.SelectedIndex >= 0)
+            {
+                NewSettings.Filters.RemoveAt(filtersListView.SelectedIndex);
+            }
+        }
+
+        private void okButtonClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+            DialogResult = true;
         }
     }
 }

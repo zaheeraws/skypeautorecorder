@@ -44,30 +44,35 @@ namespace SkypeAutoRecorder.Configuration
 
         public static Settings Current { get; set; }
 
-        [XmlIgnore]
-        public bool Autostart { get; set; }
+        //[XmlIgnore]
+        //public bool Autostart { get; set; }
 
         #region Serializable fields
 
         [XmlArray("Filters")]
         public ObservableCollection<Filter> Filters { get; set; }
 
-        [XmlElement("DefaultFileName")]
-        public string DefaultRawFileName { get; set; }
+        //[XmlElement("DefaultFileName")]
+        //public string DefaultRawFileName { get; set; }
 
-        [XmlElement("RecordUnfiltered")]
-        public bool RecordUnfiltered { get; set; }
+        //[XmlElement("RecordUnfiltered")]
+        //public bool RecordUnfiltered { get; set; }
 
-        [XmlElement("ExcludedContacts")]
-        public string ExcludedContacts { get; set; }
+        //[XmlElement("ExcludedContacts")]
+        //public string ExcludedContacts { get; set; }
 
         #endregion
 
         public static void Save()
         {
             // Create directory for application settings if it doesn't exists.
-            var path = Path.GetFullPath(SettingsFileName);
-            if (Directory.Exists(path))
+            var path = Path.GetDirectoryName(SettingsFileName);
+            if (path == null)
+            {
+                return;
+            }
+
+            if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
@@ -83,7 +88,13 @@ namespace SkypeAutoRecorder.Configuration
         public static string RenderFileName(string rawFileName, string contact, DateTime dateTime)
         {
             var fileName = rawFileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
-            return fileName.Replace(ContactPlaceholder, contact);
+            fileName = fileName.Replace(ContactPlaceholder, contact);
+            if (!string.IsNullOrEmpty(Path.GetExtension(fileName)))
+            {
+                fileName = fileName + ".wav";
+            }
+
+            return fileName;
         }
 
         public static bool ContactsContain(string contacts, string contact)
