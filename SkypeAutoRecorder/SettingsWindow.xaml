@@ -44,14 +44,14 @@
       <Button Padding="8,3" Margin="1,0" Click="removeButtonClick">Remove</Button>
     </StackPanel>
     <StackPanel Grid.Row="4">
-      <!--<CheckBox Margin="3" IsChecked="{Binding RecordUnfiltered}" HorizontalAlignment="Left">
+      <TextBlock>Filter can contain few contacts separated with semicolon or comma.</TextBlock>
+      <TextBlock>Available placeholders for file name: {contact}, {date-time}.</TextBlock>
+      <CheckBox Margin="3,20,3,3" IsChecked="{Binding RecordUnfiltered}" HorizontalAlignment="Left">
         <TextBlock Text="Record unfiltered conversations to:" />
       </CheckBox>
       <TextBox Margin="20,3,3,3" Text="{Binding DefaultRawFileName}" />
       <TextBlock Text="Don't record conversations with contacts:" Margin="3,3,3,1" />
-      <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />-->
-      <TextBlock>Filter can contain few contacts separated with semicolon or comma.</TextBlock>
-      <TextBlock>Available placeholders for file name: {contact}, {date-time}.</TextBlock>
+      <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,2,0">
         <Button Margin="1" Padding="8,3" IsDefault="True" Click="okButtonClick">OK</Button>
         <Button Margin="1" Padding="8,3" IsCancel="True">Cancel</Button>

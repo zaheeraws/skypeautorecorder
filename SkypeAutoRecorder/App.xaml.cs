@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using SkypeAutoRecorder.Configuration;
@@ -82,14 +83,18 @@ namespace SkypeAutoRecorder
         private string _recordFileName;
         private string _tempInFileName;
         private string _tempOutFileName;
+
         private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
         {
             _recordFileName = Settings.Current.GetFileName(conversationEventArgs.CallerName, DateTime.Now);
             if (_recordFileName != null)
             {
                 _trayIcon.Icon = _recordingIcon;
+                
+                // Get temp files.
                 _tempInFileName = Path.GetTempFileName();
                 _tempOutFileName = Path.GetTempFileName();
+
                 _connector.StartRecord(_tempInFileName, _tempOutFileName);
             }
         }
@@ -98,16 +103,36 @@ namespace SkypeAutoRecorder
         {
             if (_recordFileName != null)
             {
-                _trayIcon.Icon = _connectedIcon;
                 _connector.EndRecord();
-                File.Delete(_tempInFileName);
-                File.Delete(_tempOutFileName);
-                _tempInFileName += ".in";
-                _tempOutFileName += ".out";
-                if (SoundProcessor.MergeChannels(_tempInFileName, _tempOutFileName, _recordFileName))
+
+                var fileNames = new[] { _tempInFileName, _tempOutFileName, _recordFileName };
+                ThreadPool.QueueUserWorkItem(soundProcessing, fileNames);
+
+                _trayIcon.Icon = _connectedIcon;
+            }
+        }
+
+        private void soundProcessing(object data)
+        {
+            var fileNames = (string[])data;
+            var tempInFileName = fileNames[0];
+            var tempOutFileName = fileNames[1];
+            var recordFileName = fileNames[2];
+
+            // Merge channels.
+            var mergedFileName = Path.GetTempFileName();
+            File.Delete(mergedFileName);
+            mergedFileName += ".wav";
+
+            if (SoundProcessor.MergeChannels(tempInFileName, tempOutFileName, mergedFileName))
+            {
+                File.Delete(tempInFileName);
+                File.Delete(tempOutFileName);
+
+                // Encode merged file to MP3.
+                if (SoundProcessor.EncodeMp3(mergedFileName, recordFileName))
                 {
-                    File.Delete(_tempInFileName);
-                    File.Delete(_tempOutFileName);
+                    File.Delete(mergedFileName);
                 }
             }
         }
@@ -125,7 +150,7 @@ namespace SkypeAutoRecorder
         #region Windows
 
         private SettingsWindow _settingsWindow;
-        // private AboutWindow _aboutWindow;
+        private AboutWindow _aboutWindow;
 
         private void onSettingsClick(object sender, EventArgs eventArgs)
         {
@@ -151,19 +176,13 @@ namespace SkypeAutoRecorder
 
         private void onAboutClick(object sender, EventArgs eventArgs)
         {
-            // if (_aboutWindow == null)
-            // {
-            //     _aboutWindow = new AboutWindow();
-            // }
+            if (_aboutWindow != null && _aboutWindow.IsLoaded)
+            {
+                return;
+            }
 
-            // if (_aboutWindow.Visibility != Visibility.Visible)
-            // {
-            //     _aboutWindow.ShowDialog();
-            // }
-
-            System.Windows.MessageBox.Show(
-                "Skype Auto Recorder\r\nVersion 0.1\r\nAuthor: Miroshnichenko Kirill",
-                "About", MessageBoxButton.OK);
+            _aboutWindow = new AboutWindow();
+            _aboutWindow.ShowDialog();
         }
 
         #endregion

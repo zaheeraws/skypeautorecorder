@@ -5,8 +5,8 @@
     /// </summary>
     internal static class SkypeCommands
     {
-        public const string StartRecordOutput = "ALTER CALL {0} SET_OUTPUT FILE=\"{1}.out\"";
-        public const string StartRecordInput  = "ALTER CALL {0} SET_CAPTURE_MIC FILE=\"{1}.in\"";
+        public const string StartRecordOutput = "ALTER CALL {0} SET_OUTPUT FILE=\"{1}\"";
+        public const string StartRecordInput  = "ALTER CALL {0} SET_CAPTURE_MIC FILE=\"{1}\"";
         public const string EndRecordOutput   = "ALTER CALL {0} SET_OUTPUT SOUNDCARD=\"default\"";
         public const string EndRecordInput    = "ALTER CALL {0} SET_CAPTURE_MIC PORT=\"356\"";
         public const string GetCallerName     = "GET CALL {0} PARTNER_HANDLE";

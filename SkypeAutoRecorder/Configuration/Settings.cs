@@ -12,7 +12,7 @@ namespace SkypeAutoRecorder.Configuration
     {
         private const string DateTimePlaceholder = "{date-time}";
         private const string ContactPlaceholder = "{contact}";
-        private const string DateTimeFormat = "yyyy-MM-dd HH.mm";
+        private const string DateTimeFormat = "yyyy-MM-dd HH.mm.ss";
 
         /// <summary>
         /// File name where application settings are stored.
@@ -52,14 +52,14 @@ namespace SkypeAutoRecorder.Configuration
         [XmlArray("Filters")]
         public ObservableCollection<Filter> Filters { get; set; }
 
-        //[XmlElement("DefaultFileName")]
-        //public string DefaultRawFileName { get; set; }
+        [XmlElement("DefaultFileName")]
+        public string DefaultRawFileName { get; set; }
 
-        //[XmlElement("RecordUnfiltered")]
-        //public bool RecordUnfiltered { get; set; }
+        [XmlElement("RecordUnfiltered")]
+        public bool RecordUnfiltered { get; set; }
 
-        //[XmlElement("ExcludedContacts")]
-        //public string ExcludedContacts { get; set; }
+        [XmlElement("ExcludedContacts")]
+        public string ExcludedContacts { get; set; }
 
         #endregion
 
@@ -91,7 +91,7 @@ namespace SkypeAutoRecorder.Configuration
             fileName = fileName.Replace(ContactPlaceholder, contact);
             if (!string.IsNullOrEmpty(Path.GetExtension(fileName)))
             {
-                fileName = fileName + ".wav";
+                fileName = fileName + ".mp3";
             }
 
             return fileName;
@@ -100,15 +100,33 @@ namespace SkypeAutoRecorder.Configuration
         public static bool ContactsContain(string contacts, string contact)
         {
             var contactsList = contacts.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                       .Select(c => c.Trim());
+                                       .Select(c => c.Trim().ToLower());
 
-            return contactsList.Contains(contact);
+            return contactsList.Contains(contact.ToLower());
         }
 
         public string GetFileName(string contact, DateTime dateTime)
         {
             var filter = Filters.FirstOrDefault(f => ContactsContain(f.Contacts, contact));
-            return filter == null ? null : RenderFileName(filter.RawFileNames, contact, dateTime);
+            
+            if (filter == null)
+            {
+                // Check if conversation with this contact can be auto recorded.
+                if (ContactsContain(ExcludedContacts, contact))
+                {
+                    return null;
+                }
+
+                // Try to use default file name.
+                if (RecordUnfiltered && !string.IsNullOrEmpty(DefaultRawFileName))
+                {
+                    return RenderFileName(DefaultRawFileName, contact, dateTime);
+                }
+
+                return null;
+            }
+            
+            return RenderFileName(filter.RawFileNames, contact, dateTime);
         }
 
         /// <summary>
