@@ -108,7 +108,7 @@ namespace SkypeAutoRecorder.Configuration
         public string GetFileName(string contact, DateTime dateTime)
         {
             var filter = Filters.FirstOrDefault(f => ContactsContain(f.Contacts, contact));
-            
+
             if (filter == null)
             {
                 // Check if conversation with this contact can be auto recorded.
@@ -125,8 +125,27 @@ namespace SkypeAutoRecorder.Configuration
 
                 return null;
             }
-            
-            return RenderFileName(filter.RawFileNames, contact, dateTime);
+
+            var fileName = RenderFileName(filter.RawFileNames, contact, dateTime);
+
+            CreateFilePath(fileName);
+
+            return fileName;
+        }
+
+        private static void CreateFilePath(string fileName)
+        {
+            var path = Path.GetDirectoryName(fileName);
+
+            if (path == null)
+            {
+                return;
+            }
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
         }
 
         /// <summary>
