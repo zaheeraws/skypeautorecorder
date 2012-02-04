@@ -15,10 +15,14 @@ namespace SkypeAutoRecorder.Core
         private int _currentCallNumber;
         private string _currentCaller;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SkypeConnector"/> class.
+        /// </summary>
         public SkypeConnector()
         {
-            Connected += onConnected;
-            Disconnected += onDisconnected;
+            // Subscribe to Skype connection events.
+            Connected += (sender, args) => IsConnected = true;
+            Disconnected += (sender, args) => IsConnected = false;
 
             // Create dummy handle source to catch Windows API messages.
             _windowHandleSource = new HwndSource(new HwndSourceParameters());
@@ -77,6 +81,10 @@ namespace SkypeAutoRecorder.Core
             sendSkypeCommand(endRecordOutCommand);
         }
 
+        /// <summary>
+        /// Sends the Skype command using Windows API.
+        /// </summary>
+        /// <param name="command">The command.</param>
         private void sendSkypeCommand(string command)
         {
             var data = new CopyDataStruct { Id = "1", Size = command.Length + 1, Data = command };
@@ -84,19 +92,23 @@ namespace SkypeAutoRecorder.Core
                 _skypeWindowHandle, WinApiConstants.WM_COPYDATA, _windowHandleSource.Handle, ref data);
         }
 
+        /// <summary>
+        /// Processes the Skype message.
+        /// </summary>
+        /// <param name="data">The data that contains message details.</param>
         private void processSkypeMessage(CopyDataStruct data)
         {
             // Status online.
             if (data.Data == SkypeMessages.ConnectionStatusOnline)
             {
-                invokeConnected(EventArgs.Empty);
+                invokeConnected();
                 return;
             }
 
             // Status offline.
             if (data.Data == SkypeMessages.ConnectionStatusOffline)
             {
-                invokeDisconnected(EventArgs.Empty);
+                invokeDisconnected();
                 return;
             }
 
@@ -106,6 +118,8 @@ namespace SkypeAutoRecorder.Core
             if (match.Success)
             {
                 _currentCallNumber = int.Parse(match.Groups[1].Value);
+
+                // Ask Skype for caller name.
                 sendSkypeCommand(string.Format(SkypeCommands.GetCallerName, _currentCallNumber));
                 return;
             }
@@ -120,27 +134,22 @@ namespace SkypeAutoRecorder.Core
                 return;
             }
 
-            // Call in progress.
+            // Conversation ended.
             regex = new Regex("CALL (\\d+) STATUS FINISHED");
             match = regex.Match(data.Data);
             if (match.Success && _currentCallNumber == int.Parse(match.Groups[1].Value))
             {
+                EndRecord();
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));
             }
         }
 
-        private void onConnected(object sender, EventArgs eventArgs)
-        {
-            IsConnected = true;
-        }
-
-        private void onDisconnected(object sender, EventArgs eventArgs)
-        {
-            IsConnected = false;
-        }
-
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
+            // Remove hook of Windows API messages.
             _windowHandleSource.RemoveHook(apiMessagesHandler);
         }
     }

@@ -18,6 +18,8 @@ namespace SkypeAutoRecorder
     {
         #region Tray icons
 
+        // Icons from the resources for displaying application status.
+
         private const string DisconnectedIconResource = "SkypeAutoRecorder.Images.DisconnectedTrayIcon.ico";
         private const string ConnectedIconResource = "SkypeAutoRecorder.Images.ConnectedTrayIcon.ico";
         private const string RecordingIconResource = "SkypeAutoRecorder.Images.RecordingTrayIcon.ico";
@@ -33,6 +35,10 @@ namespace SkypeAutoRecorder
 
         private NotifyIcon _trayIcon;
 
+        /// <summary>
+        /// Creates tray icon and context menu for it.
+        /// </summary>
+        /// <returns>Created <see cref="NotifyIcon"/> instance.</returns>
         private NotifyIcon buildTrayIcon()
         {
             var trayIcon = new NotifyIcon
@@ -41,8 +47,8 @@ namespace SkypeAutoRecorder
                 ContextMenu = new ContextMenu()
             };
 
-            // Context menu.
-            trayIcon.ContextMenu.MenuItems.Add("Settings", onSettingsClick);
+            // Add context menu.
+            trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow()).DefaultItem = true;
             trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
@@ -55,33 +61,35 @@ namespace SkypeAutoRecorder
         #endregion
 
         private SkypeConnector _connector;
-        
+
         private void appStartup(object sender, StartupEventArgs e)
         {
+            // Initialize tray icon.
             _trayIcon = buildTrayIcon();
+            _trayIcon.MouseDoubleClick += (o, args) => openSettingsWindow();
             
+            // Initialize Skype connector.
             _connector = new SkypeConnector();
-
-            _connector.Connected += onConnected;
-            _connector.Disconnected += onDisconnected;
+            _connector.Connected += (o, args) => _trayIcon.Icon = _connectedIcon;
+            _connector.Disconnected += (o, args) => _trayIcon.Icon = _disconnectedIcon;
             _connector.ConversationStarted += onConversationStarted;
             _connector.ConversationEnded += onConversationEnded;
-
             _connector.Enable();
         }
 
-        private void onConnected(object sender, EventArgs eventArgs)
-        {
-            _trayIcon.Icon = _connectedIcon;
-        }
-
-        private void onDisconnected(object sender, EventArgs eventArgs)
-        {
-            _trayIcon.Icon = _disconnectedIcon;
-        }
-
+        /// <summary>
+        /// Final resulting file name after recording and all sound processing steps.
+        /// </summary>
         private string _recordFileName;
+
+        /// <summary>
+        /// File name for the incoming channel recorded by Skype.
+        /// </summary>
         private string _tempInFileName;
+
+        /// <summary>
+        /// File name for the outgoing channel recorded by Skype.
+        /// </summary>
         private string _tempOutFileName;
 
         private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
@@ -103,8 +111,6 @@ namespace SkypeAutoRecorder
         {
             if (_recordFileName != null)
             {
-                _connector.EndRecord();
-
                 var fileNames = new[] { _tempInFileName, _tempOutFileName, _recordFileName };
                 ThreadPool.QueueUserWorkItem(soundProcessing, fileNames);
 
@@ -139,7 +145,7 @@ namespace SkypeAutoRecorder
 
         private void appExit(object sender, ExitEventArgs e)
         {
-            _trayIcon.Visible = false;
+            _trayIcon.Dispose();
 
             if (_connector != null)
             {
@@ -152,14 +158,20 @@ namespace SkypeAutoRecorder
         private SettingsWindow _settingsWindow;
         private AboutWindow _aboutWindow;
 
-        private void onSettingsClick(object sender, EventArgs eventArgs)
+        /// <summary>
+        /// Opens the settings window.
+        /// </summary>
+        private void openSettingsWindow()
         {
             if (_settingsWindow != null && _settingsWindow.IsLoaded)
             {
                 return;
             }
 
+            // Create copy of the current settings to have a possibility of rollback changes.
             var settingsCopy = (Settings)Settings.Current.Clone();
+
+            // Create settings window with copied settings.
             _settingsWindow = new SettingsWindow(settingsCopy);
             _settingsWindow.Closed += settingsWindowOnClosed;
             _settingsWindow.ShowDialog();
@@ -169,6 +181,7 @@ namespace SkypeAutoRecorder
         {
             if (_settingsWindow.DialogResult == true)
             {
+                // Replace current settings and save them to file if user has accepted changes in settings window.
                 Settings.Current = _settingsWindow.NewSettings;
                 Settings.Save();
             }

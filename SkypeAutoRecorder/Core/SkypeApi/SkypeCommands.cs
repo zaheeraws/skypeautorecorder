@@ -10,7 +10,5 @@
         public const string EndRecordOutput   = "ALTER CALL {0} SET_OUTPUT SOUNDCARD=\"default\"";
         public const string EndRecordInput    = "ALTER CALL {0} SET_CAPTURE_MIC PORT=\"356\"";
         public const string GetCallerName     = "GET CALL {0} PARTNER_HANDLE";
-        public const string Focus             = "FOCUS";
-        public const string Ping              = "PING";
     }
 }

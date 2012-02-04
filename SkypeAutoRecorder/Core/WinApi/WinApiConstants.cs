@@ -5,6 +5,9 @@
     /// </summary>
     internal class WinApiConstants
     {
-        public const int WM_COPYDATA            = 0x004A;
+        /// <summary>
+        /// Windows API message type used by Skype API for event messages.
+        /// </summary>
+        public const int WM_COPYDATA = 0x004A;
     }
 }

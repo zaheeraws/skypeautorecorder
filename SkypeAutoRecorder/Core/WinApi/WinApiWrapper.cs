@@ -38,6 +38,11 @@ namespace SkypeAutoRecorder.Core.WinApi
 
         #endregion
 
+        /// <summary>
+        /// Registers the Windows API message in the system.
+        /// </summary>
+        /// <param name="message">The Windows API message name.</param>
+        /// <returns>Identifier of the registered message.</returns>
         public static uint RegisterApiMessage(string message)
         {
             var id = RegisterWindowMessage(message);
@@ -49,6 +54,12 @@ namespace SkypeAutoRecorder.Core.WinApi
             return id;
         }
 
+        /// <summary>
+        /// Sends the Windows API message.
+        /// </summary>
+        /// <param name="receiverHandle">The receiver handle.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="param">The parameter.</param>
         public static void SendMessage(IntPtr receiverHandle, uint message, IntPtr param)
         {
             IntPtr result;
@@ -59,6 +70,13 @@ namespace SkypeAutoRecorder.Core.WinApi
             }
         }
 
+        /// <summary>
+        /// Sends the Windows API message.
+        /// </summary>
+        /// <param name="receiverHandle">The receiver handle.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="param">The parameter.</param>
+        /// <param name="data">The data.</param>
         public static void SendMessage(IntPtr receiverHandle, uint message, IntPtr param, ref CopyDataStruct data)
         {
             IntPtr result;
@@ -69,6 +87,11 @@ namespace SkypeAutoRecorder.Core.WinApi
             }
         }
 
+        /// <summary>
+        /// Checks that window with specified class name exists.
+        /// </summary>
+        /// <param name="windowClassName">Name of the window class.</param>
+        /// <returns><c>true</c> if window exists; otherwise, <c>false</c>.</returns>
         public static bool WindowExists(string windowClassName)
         {
             return FindWindow(windowClassName, null) != IntPtr.Zero;
