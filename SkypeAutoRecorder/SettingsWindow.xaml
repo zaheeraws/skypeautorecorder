@@ -19,7 +19,7 @@
       <Image Source="/SkypeAutoRecorder;component/Images/Filters.png" />
       <TextBlock Margin="3,0,0,0" HorizontalAlignment="Center" Text="Filters:" />
     </StackPanel>
-    <ListView Grid.Row="2" Margin="3,1,3,3" ItemsSource="{Binding Filters, Mode=TwoWay}" Name="filtersListView">
+    <ListView Grid.Row="2" Margin="3,1,3,3" ItemsSource="{Binding Filters, Mode=TwoWay}">
       <ListView.ItemContainerStyle>
         <Style TargetType="ListViewItem">
           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -37,16 +37,33 @@
           <GridViewColumn Width="195" Header="File name">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
-                <TextBox Text="{Binding RawFileNames}" />
+                <TextBox Text="{Binding RawFileName}" />
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
-          <GridViewColumn Width="35">
+          <GridViewColumn Width="55">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
-                <Button Tag="{Binding}" Width="20" Height="20" Click="removeButtonClick">
-                  <Image Source="/SkypeAutoRecorder;component/Images/Remove.png" />
-                </Button>
+                <StackPanel Orientation="Horizontal">
+                  <Button Tag="{Binding}" Width="20" Height="20" VerticalAlignment="Center"
+                          Click="browseFilterFolderButtonClick">
+                    <Image Source="/SkypeAutoRecorder;component/Images/SelectFolder.png" />
+                    <Button.ToolTip>
+                      <ToolTip>
+                        <TextBlock>Select folder</TextBlock>
+                      </ToolTip>
+                    </Button.ToolTip>
+                  </Button>
+                  <Button Margin="3,0,0,0" Tag="{Binding}" Width="20" Height="20" VerticalAlignment="Center"
+                          Click="removeButtonClick">
+                    <Image Source="/SkypeAutoRecorder;component/Images/Remove.png" />
+                    <Button.ToolTip>
+                      <ToolTip>
+                        <TextBlock>Remove filter</TextBlock>
+                      </ToolTip>
+                    </Button.ToolTip>
+                  </Button>
+                </StackPanel>
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
@@ -68,9 +85,19 @@
           Available placeholders for file name: 
           <Hyperlink NavigateUri="" Tag="{}{contact}" RequestNavigate="onPlaceholderClick">
             <TextBlock>{contact}</TextBlock>
+            <Hyperlink.ToolTip>
+              <ToolTip>
+                <TextBlock>Copy to clipboard</TextBlock>
+              </ToolTip>
+            </Hyperlink.ToolTip>
           </Hyperlink>,
           <Hyperlink NavigateUri="" Tag="{}{date-time}" RequestNavigate="onPlaceholderClick">
             <TextBlock>{date-time}</TextBlock>
+            <Hyperlink.ToolTip>
+              <ToolTip>
+                <TextBlock>Copy to clipboard</TextBlock>
+              </ToolTip>
+            </Hyperlink.ToolTip>
           </Hyperlink>.
         </TextBlock>
       </StackPanel>
@@ -86,7 +113,22 @@
                 HorizontalAlignment="Left" VerticalAlignment="Center">
         <TextBlock Text="Record unfiltered conversations to:" />
       </CheckBox>
-      <TextBox Margin="20,3,3,3" Text="{Binding DefaultRawFileName}" />
+      <Grid Margin="20,3,3,3">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBox Text="{Binding DefaultRawFileName}" />
+        <Button Grid.Column="1" Margin="3,0,0,0" Width="20" Height="20" VerticalAlignment="Center"
+                Click="browseDefaultFolderButtonClick">
+          <Image Source="/SkypeAutoRecorder;component/Images/SelectFolder.png" />
+          <Button.ToolTip>
+            <ToolTip>
+              <TextBlock>Select folder</TextBlock>
+            </ToolTip>
+          </Button.ToolTip>
+        </Button>
+      </Grid>
       <StackPanel Orientation="Horizontal" Margin="3,15,3,1">
         <Image Source="/SkypeAutoRecorder;component/Images/Exclude.png" />
         <TextBlock Margin="3,0,0,0" Text="Don't record conversations with contacts:" />

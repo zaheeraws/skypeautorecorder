@@ -1,10 +1,12 @@
 ﻿using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Navigation;
 using Microsoft.Win32;
 using SkypeAutoRecorder.Configuration;
+using Button = System.Windows.Controls.Button;
+using Clipboard = System.Windows.Clipboard;
 
 namespace SkypeAutoRecorder
 {
@@ -15,7 +17,7 @@ namespace SkypeAutoRecorder
     {
         private const string AutostartRegistryKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
         private const string AutostartValueName = "SkypeAutoRecorder";
-
+        
         public SettingsWindow(Settings currentSettings)
         {
             InitializeComponent();
@@ -41,10 +43,7 @@ namespace SkypeAutoRecorder
         private void removeButtonClick(object sender, RoutedEventArgs e)
         {
             var filter = (Filter)((Button)sender).Tag;
-            if (filter != null)
-            {
-                NewSettings.Filters.Remove(filter);
-            }
+            NewSettings.Filters.Remove(filter);
         }
 
         private void okButtonClick(object sender, RoutedEventArgs e)
@@ -59,7 +58,7 @@ namespace SkypeAutoRecorder
             else
             {
                 // Disable autostart - remove registry record.
-                Registry.CurrentUser.OpenSubKey(AutostartRegistryKey, true).DeleteValue(AutostartValueName);
+                Registry.CurrentUser.OpenSubKey(AutostartRegistryKey, true).DeleteValue(AutostartValueName, false);
             }
 
             DialogResult = true;
@@ -69,6 +68,24 @@ namespace SkypeAutoRecorder
         {
             Clipboard.SetText(((Hyperlink)sender).Tag.ToString());
             e.Handled = true;
+        }
+
+        private void browseFilterFolderButtonClick(object sender, RoutedEventArgs e)
+        {
+            var dialog = new FolderBrowserDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ((Filter)((Button)sender).Tag).RawFileName = dialog.SelectedPath;
+            }
+        }
+
+        private void browseDefaultFolderButtonClick(object sender, RoutedEventArgs e)
+        {
+            var dialog = new FolderBrowserDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                NewSettings.DefaultRawFileName = dialog.SelectedPath;
+            }
         }
     }
 }

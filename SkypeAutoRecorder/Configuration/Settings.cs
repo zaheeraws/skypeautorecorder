@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -11,7 +12,7 @@ namespace SkypeAutoRecorder.Configuration
     /// Provides access to application settings.
     /// </summary>
     [Serializable]
-    public class Settings : ICloneable
+    public class Settings : INotifyPropertyChanged, ICloneable
     {
         private const string DateTimePlaceholder = "{date-time}";
         private const string ContactPlaceholder = "{contact}";
@@ -80,7 +81,22 @@ namespace SkypeAutoRecorder.Configuration
             return contactsList.Contains(contact.ToLower());
         }
 
+        private string _defaultRawFileName;
+        private bool _recordUnfiltered;
+        private string _excludedContacts;
+
+        /// <summary>
+        /// Gets or sets the current settings.
+        /// </summary>
+        /// <value>
+        /// The current settings.
+        /// </value>
         public static Settings Current { get; set; }
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings"/> class.
@@ -95,17 +111,86 @@ namespace SkypeAutoRecorder.Configuration
             ExcludedContacts = "echo123";
         }
 
+        /// <summary>
+        /// Gets or sets the filters that specify target folders for records of certain contacts.
+        /// </summary>
+        /// <value>
+        /// The filters.
+        /// </value>
         [XmlArray("Filters")]
         public ObservableCollection<Filter> Filters { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name with placeholders of the target file for all records of contacts
+        /// which are not in the filters.
+        /// </summary>
+        /// <value>
+        /// The name of the file with placeholders.
+        /// </value>
         [XmlElement("DefaultFileName")]
-        public string DefaultRawFileName { get; set; }
+        public string DefaultRawFileName
+        {
+            get
+            {
+                return _defaultRawFileName;
+            }
+            set
+            {
+                if (_defaultRawFileName != value)
+                {
+                    _defaultRawFileName = value;
+                    invokePropertyChanged(new PropertyChangedEventArgs("DefaultRawFileName"));
+                }
+            }
+        }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether application should record conversation with contacts
+        /// which are not in the filters.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if application should record everything; otherwise, <c>false</c>.
+        /// </value>
         [XmlElement("RecordUnfiltered")]
-        public bool RecordUnfiltered { get; set; }
+        public bool RecordUnfiltered
+        {
+            get
+            {
+                return _recordUnfiltered;
+            }
+            set
+            {
+                if (_recordUnfiltered != value)
+                {
+                    _recordUnfiltered = value;
+                    invokePropertyChanged(new PropertyChangedEventArgs("RecordUnfiltered"));
+                }
+            }
+        }
 
+        /// <summary>
+        /// Gets or sets the contacts which are excluded from unfiltered records. These contacts will be recorded
+        /// regardless of this field if they are in the filters.
+        /// </summary>
+        /// <value>
+        /// The excluded contacts.
+        /// </value>
         [XmlElement("ExcludedContacts")]
-        public string ExcludedContacts { get; set; }
+        public string ExcludedContacts
+        {
+            get
+            {
+                return _excludedContacts;
+            }
+            set
+            {
+                if (_excludedContacts != value)
+                {
+                    _excludedContacts = value;
+                    invokePropertyChanged(new PropertyChangedEventArgs("ExcludedContacts"));
+                }
+            }
+        }
 
         /// <summary>
         /// Saves current settings to file.
@@ -157,7 +242,7 @@ namespace SkypeAutoRecorder.Configuration
                 return null;
             }
             
-            return renderFileName(filter.RawFileNames, contact, dateTime);
+            return renderFileName(filter.RawFileName, contact, dateTime);
         }
 
         /// <summary>
@@ -174,6 +259,14 @@ namespace SkypeAutoRecorder.Configuration
                 formatter.Serialize(stream, Current);
                 stream.Position = 0;
                 return formatter.Deserialize(stream);
+            }
+        }
+
+        private void invokePropertyChanged(PropertyChangedEventArgs e)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, e);
             }
         }
     }
