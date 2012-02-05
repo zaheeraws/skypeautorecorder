@@ -79,8 +79,7 @@ namespace SkypeAutoRecorder.Configuration
             var fileName = rawFileName;
 
             // Check if file name is missing. Add default one.
-            var file = Path.GetFileName(fileName);
-            if (string.IsNullOrEmpty(file))
+            if (string.IsNullOrEmpty(Path.GetFileName(fileName)))
             {
                 fileName += DefaultFileName;
             }
@@ -97,13 +96,7 @@ namespace SkypeAutoRecorder.Configuration
             }
 
             // Add extension if its missing.
-            var extension = Path.GetExtension(fileName);
-            if (!string.IsNullOrEmpty(extension) || extension != ".mp3")
-            {
-                fileName = fileName + ".mp3";
-            }
-
-            return fileName;
+            return Path.ChangeExtension(fileName, "mp3");
         }
 
         /// <summary>

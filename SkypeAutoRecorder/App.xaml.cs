@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -8,6 +9,7 @@ using System.Windows.Forms;
 using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core;
 using SkypeAutoRecorder.Core.Sound;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SkypeAutoRecorder
 {
@@ -142,7 +144,8 @@ namespace SkypeAutoRecorder
                                     TempInFileName = _tempInFileName,
                                     TempOutFileName = _tempOutFileName,
                                     RecordFileName = _recordFileName,
-                                    CallerName = 
+                                    CallerName = _callerName,
+                                    StartRecordDateTime = _startRecordDateTime
                                 };
                 ThreadPool.QueueUserWorkItem(soundProcessing, fileNames);
 
@@ -150,28 +153,49 @@ namespace SkypeAutoRecorder
             }
         }
 
-        private void soundProcessing(object data)
+        private void soundProcessing(object dataObject)
         {
-            var fileNames = (ProcessingThreadData)data;
+            var data = (ProcessingThreadData)dataObject;
 
             // Merge channels.
             var mergedFileName = Path.GetTempFileName();
             File.Delete(mergedFileName);
             mergedFileName += ".wav";
 
-            if (SoundProcessor.MergeChannels(fileNames.TempInFileName, fileNames.TempOutFileName, mergedFileName))
+            if (SoundProcessor.MergeChannels(data.TempInFileName, data.TempOutFileName, mergedFileName))
             {
-                File.Delete(fileNames.TempInFileName);
-                File.Delete(fileNames.TempOutFileName);
+                File.Delete(data.TempInFileName);
+                File.Delete(data.TempOutFileName);
 
                 // Encode merged file to MP3.
-                if (SoundProcessor.EncodeMp3(mergedFileName, fileNames.RecordFileName))
+                if (!SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName))
                 {
-                    File.Delete(mergedFileName);
+                    // Encode to settings folder with default file name if unable encode to the desired file name.
+                    var fileName = Path.Combine(Settings.SettingsFolder,
+                        Settings.RenderFileName(Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime));
+                    
+                    if (!SoundProcessor.EncodeMp3(mergedFileName, fileName))
+                    {
+                        // If encoding fails anyway then return WAV file to user.
+                        fileName = Path.ChangeExtension(fileName, "wav");
+                        File.Copy(mergedFileName, fileName, true);
+                    }
+
+                    // Report about error and ask about opening folder with resulting file.
+                    var openFolder = MessageBox.Show(
+                        string.Format(
+                            "Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?",
+                            data.RecordFileName, fileName),
+                        "Saving error", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
+
+                    // Open folder.
+                    if (openFolder)
+                    {
+                        Process.Start(Settings.SettingsFolder);
+                    }
                 }
-                else
-                {
-                }
+
+                File.Delete(mergedFileName);
             }
         }
 

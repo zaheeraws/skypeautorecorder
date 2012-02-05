@@ -74,6 +74,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Sound\SoundProcessor.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="ProcessingThreadData.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
