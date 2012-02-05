@@ -14,6 +14,7 @@ namespace SkypeAutoRecorder.Core
     {
         private int _currentCallNumber;
         private string _currentCaller;
+        private bool _startConversationHandled;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SkypeConnector"/> class.
@@ -93,53 +94,68 @@ namespace SkypeAutoRecorder.Core
         }
 
         /// <summary>
+        /// Parses the skype message and returns its parameter.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="pattern">The pattern.</param>
+        /// <returns>First message parameter.</returns>
+        private string parseSkypeMessage(string message, string pattern)
+        {
+            var regex = new Regex(pattern);
+            var match = regex.Match(message);
+            return match.Success ? match.Groups[1].Value : null;
+        }
+
+        /// <summary>
         /// Processes the Skype message.
         /// </summary>
-        /// <param name="data">The data that contains message details.</param>
-        private void processSkypeMessage(CopyDataStruct data)
+        /// <param name="message">The Skype message.</param>
+        private void processSkypeMessage(string message)
         {
             // Status online.
-            if (data.Data == SkypeMessages.ConnectionStatusOnline)
+            if (message == SkypeMessages.ConnectionStatusOnline)
             {
                 invokeConnected();
                 return;
             }
 
             // Status offline.
-            if (data.Data == SkypeMessages.ConnectionStatusOffline)
+            if (message == SkypeMessages.ConnectionStatusOffline)
             {
+                _startConversationHandled = false;
                 invokeDisconnected();
                 return;
             }
 
-            // Call in progress.
-            var regex = new Regex("CALL (\\d+) STATUS INPROGRESS");
-            var match = regex.Match(data.Data);
-            if (match.Success)
+            // Conversation started.
+            var numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS INPROGRESS");
+            var numberFromDuration = parseSkypeMessage(message, "CALL (\\d+) DURATION (\\d+)");
+            if ((!string.IsNullOrEmpty(numberFromStatus) || !string.IsNullOrEmpty(numberFromDuration)) &&
+                !_startConversationHandled)
             {
-                _currentCallNumber = int.Parse(match.Groups[1].Value);
+                _startConversationHandled = true;
+
+                _currentCallNumber = int.Parse(numberFromStatus ?? numberFromDuration);
 
                 // Ask Skype for caller name.
                 sendSkypeCommand(string.Format(SkypeCommands.GetCallerName, _currentCallNumber));
                 return;
             }
 
-            // Conversation started.
-            regex = new Regex(string.Format("CALL {0} PARTNER_HANDLE (.+)", _currentCallNumber));
-            match = regex.Match(data.Data);
-            if (match.Success)
+            // Message with caller name.
+            var caller = parseSkypeMessage(message, string.Format("CALL {0} PARTNER_HANDLE (.+)", _currentCallNumber));
+            if (!string.IsNullOrEmpty(caller))
             {
-                _currentCaller = match.Groups[1].Value;
+                _currentCaller = caller;
                 invokeConversationStarted(new ConversationEventArgs(_currentCaller));
                 return;
             }
 
             // Conversation ended.
-            regex = new Regex("CALL (\\d+) STATUS FINISHED");
-            match = regex.Match(data.Data);
-            if (match.Success && _currentCallNumber == int.Parse(match.Groups[1].Value))
+            numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS FINISHED");
+            if (!string.IsNullOrEmpty(numberFromStatus) && _currentCallNumber == int.Parse(numberFromStatus))
             {
-                EndRecord();
+                _startConversationHandled = false;
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));
             }
         }

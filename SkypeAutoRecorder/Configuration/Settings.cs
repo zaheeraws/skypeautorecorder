@@ -14,6 +14,16 @@ namespace SkypeAutoRecorder.Configuration
     [Serializable]
     public class Settings : INotifyPropertyChanged, ICloneable
     {
+        /// <summary>
+        /// Default pattern for name of the recorded file.
+        /// </summary>
+        public const string DefaultFileName = "{date-time} {contact}.mp3";
+
+        /// <summary>
+        /// Folder where application settings are stored.
+        /// </summary>
+        public static readonly string SettingsFolder;
+
         private const string DateTimePlaceholder = "{date-time}";
         private const string ContactPlaceholder = "{contact}";
         private const string DateTimeFormat = "yyyy-MM-dd HH.mm.ss";
@@ -21,14 +31,22 @@ namespace SkypeAutoRecorder.Configuration
         /// <summary>
         /// File name where application settings are stored.
         /// </summary>
-        private static readonly string SettingsFileName = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SkypeAutoRecorder\\Settings.xml");
+        private static readonly string SettingsFileName;
+
+        /// <summary>
+        /// The application name.
+        /// </summary>
+        public const string ApplicationName = "SkypeAutoRecorder";
 
         /// <summary>
         /// Initializes the <see cref="Settings"/> class. Loads saved settings or creates new.
         /// </summary>
         static Settings()
         {
+            SettingsFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SkypeAutoRecorder");
+            SettingsFileName = Path.Combine(SettingsFolder, "Settings.xml");
+
             if (File.Exists(SettingsFileName))
             {
                 // Load settings from XML.
@@ -51,11 +69,32 @@ namespace SkypeAutoRecorder.Configuration
         /// <param name="contact">The contact name.</param>
         /// <param name="dateTime">The date time.</param>
         /// <returns>The actual file name for settings.</returns>
-        private static string renderFileName(string rawFileName, string contact, DateTime dateTime)
+        public static string RenderFileName(string rawFileName, string contact, DateTime dateTime)
         {
+            if (string.IsNullOrEmpty(rawFileName))
+            {
+                return null;
+            }
+
+            var fileName = rawFileName;
+
+            // Check if file name is missing. Add default one.
+            var file = Path.GetFileName(fileName);
+            if (string.IsNullOrEmpty(file))
+            {
+                fileName += DefaultFileName;
+            }
+
             // Replace placeholders.
-            var fileName = rawFileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
+            fileName = fileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
             fileName = fileName.Replace(ContactPlaceholder, contact);
+
+            // Check if path exists and create it.
+            var path = Path.GetDirectoryName(fileName);
+            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
 
             // Add extension if its missing.
             var extension = Path.GetExtension(fileName);
@@ -96,6 +135,7 @@ namespace SkypeAutoRecorder.Configuration
         /// <summary>
         /// Occurs when a property value changes.
         /// </summary>
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
@@ -107,7 +147,7 @@ namespace SkypeAutoRecorder.Configuration
             Filters = new ObservableCollection<Filter>();
             RecordUnfiltered = true;
             DefaultRawFileName = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Skype Records\\{date-time} {contact}");
+                Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Skype Records\\" + DefaultFileName);
             ExcludedContacts = "echo123";
         }
 
@@ -236,13 +276,13 @@ namespace SkypeAutoRecorder.Configuration
                 // Try to use default file name.
                 if (RecordUnfiltered && !string.IsNullOrEmpty(DefaultRawFileName))
                 {
-                    return renderFileName(DefaultRawFileName, contact, dateTime);
+                    return RenderFileName(DefaultRawFileName, contact, dateTime);
                 }
 
                 return null;
             }
             
-            return renderFileName(filter.RawFileName, contact, dateTime);
+            return RenderFileName(filter.RawFileName, contact, dateTime);
         }
 
         /// <summary>

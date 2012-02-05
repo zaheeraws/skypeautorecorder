@@ -1,7 +1,7 @@
 ﻿<Window x:Class="SkypeAutoRecorder.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Settings" WindowStartupLocation="CenterScreen"
         Height="450" Width="520" Icon="/SkypeAutoRecorder;component/Images/MainIcon.ico" ResizeMode="CanResize"
-        MinHeight="335" MinWidth="280" SnapsToDevicePixels="True">
+        MinHeight="390" MinWidth="500" SnapsToDevicePixels="True">
   <Grid Margin="10" Name="mainGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />

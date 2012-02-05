@@ -16,6 +16,7 @@ namespace SkypeAutoRecorder.Configuration
         /// <summary>
         /// Occurs when a property value changes.
         /// </summary>
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
         public Filter()

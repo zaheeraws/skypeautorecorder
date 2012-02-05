@@ -38,7 +38,7 @@ namespace SkypeAutoRecorder.Core
                 // Get the passed data.
                 var data = (CopyDataStruct)Marshal.PtrToStructure(lParam, typeof(CopyDataStruct));
 
-                processSkypeMessage(data);
+                processSkypeMessage(data.Data);
 
                 handled = true;
                 return new IntPtr(1);

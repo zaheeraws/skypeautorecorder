@@ -43,8 +43,8 @@ namespace SkypeAutoRecorder
         {
             var trayIcon = new NotifyIcon
             {
-                Icon = _disconnectedIcon,
-                ContextMenu = new ContextMenu()
+                ContextMenu = new ContextMenu(),
+                Visible = true
             };
 
             // Add context menu.
@@ -53,9 +53,25 @@ namespace SkypeAutoRecorder
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
 
-            trayIcon.Visible = true;
-
             return trayIcon;
+        }
+
+        private void setTrayIconWaitingSkype()
+        {
+            _trayIcon.Icon = _disconnectedIcon;
+            _trayIcon.Text = Settings.ApplicationName + ": Waiting for Skype";
+        }
+
+        private void setTrayIconWaitingCalls()
+        {
+            _trayIcon.Icon = _connectedIcon;
+            _trayIcon.Text = Settings.ApplicationName + ": Waiting for calls";
+        }
+
+        private void setTrayIconRecording()
+        {
+            _trayIcon.Icon = _recordingIcon;
+            _trayIcon.Text = Settings.ApplicationName + ": Recording";
         }
 
         #endregion
@@ -66,12 +82,13 @@ namespace SkypeAutoRecorder
         {
             // Initialize tray icon.
             _trayIcon = buildTrayIcon();
+            setTrayIconWaitingSkype();
             _trayIcon.MouseDoubleClick += (o, args) => openSettingsWindow();
             
             // Initialize Skype connector.
             _connector = new SkypeConnector();
-            _connector.Connected += (o, args) => _trayIcon.Icon = _connectedIcon;
-            _connector.Disconnected += (o, args) => _trayIcon.Icon = _disconnectedIcon;
+            _connector.Connected += (o, args) => setTrayIconWaitingCalls();
+            _connector.Disconnected += (o, args) => setTrayIconWaitingSkype();
             _connector.ConversationStarted += onConversationStarted;
             _connector.ConversationEnded += onConversationEnded;
             _connector.Enable();
@@ -92,12 +109,18 @@ namespace SkypeAutoRecorder
         /// </summary>
         private string _tempOutFileName;
 
+        private string _callerName;
+        private DateTime _startRecordDateTime;
+
         private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
         {
-            _recordFileName = Settings.Current.GetFileName(conversationEventArgs.CallerName, DateTime.Now);
+            _callerName = conversationEventArgs.CallerName;
+            _startRecordDateTime = DateTime.Now;
+            _recordFileName = Settings.Current.GetFileName(_callerName, _startRecordDateTime);
             if (_recordFileName != null)
             {
-                _trayIcon.Icon = _recordingIcon;
+                // Update tray icon information.
+                setTrayIconRecording();
                 
                 // Get temp files.
                 _tempInFileName = Path.GetTempFileName();
@@ -111,34 +134,43 @@ namespace SkypeAutoRecorder
         {
             if (_recordFileName != null)
             {
-                var fileNames = new[] { _tempInFileName, _tempOutFileName, _recordFileName };
+                _connector.EndRecord();
+
+                // Start thread for processing sound.
+                var fileNames = new ProcessingThreadData
+                                {
+                                    TempInFileName = _tempInFileName,
+                                    TempOutFileName = _tempOutFileName,
+                                    RecordFileName = _recordFileName,
+                                    CallerName = 
+                                };
                 ThreadPool.QueueUserWorkItem(soundProcessing, fileNames);
 
-                _trayIcon.Icon = _connectedIcon;
+                setTrayIconWaitingCalls();
             }
         }
 
         private void soundProcessing(object data)
         {
-            var fileNames = (string[])data;
-            var tempInFileName = fileNames[0];
-            var tempOutFileName = fileNames[1];
-            var recordFileName = fileNames[2];
+            var fileNames = (ProcessingThreadData)data;
 
             // Merge channels.
             var mergedFileName = Path.GetTempFileName();
             File.Delete(mergedFileName);
             mergedFileName += ".wav";
 
-            if (SoundProcessor.MergeChannels(tempInFileName, tempOutFileName, mergedFileName))
+            if (SoundProcessor.MergeChannels(fileNames.TempInFileName, fileNames.TempOutFileName, mergedFileName))
             {
-                File.Delete(tempInFileName);
-                File.Delete(tempOutFileName);
+                File.Delete(fileNames.TempInFileName);
+                File.Delete(fileNames.TempOutFileName);
 
                 // Encode merged file to MP3.
-                if (SoundProcessor.EncodeMp3(mergedFileName, recordFileName))
+                if (SoundProcessor.EncodeMp3(mergedFileName, fileNames.RecordFileName))
                 {
                     File.Delete(mergedFileName);
+                }
+                else
+                {
                 }
             }
         }

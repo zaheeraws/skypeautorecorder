@@ -16,7 +16,7 @@ namespace SkypeAutoRecorder
     public partial class SettingsWindow
     {
         private const string AutostartRegistryKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-        private const string AutostartValueName = "SkypeAutoRecorder";
+        private const string AutostartValueName = Settings.ApplicationName;
         
         public SettingsWindow(Settings currentSettings)
         {
