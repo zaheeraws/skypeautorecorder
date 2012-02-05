@@ -84,12 +84,12 @@ namespace SkypeAutoRecorder.Configuration
                 fileName += DefaultFileName;
             }
 
+            // Add extension if its missing.
+            fileName = Path.ChangeExtension(fileName, "mp3");
+
             // Replace placeholders.
             fileName = fileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
-            fileName = fileName.Replace(ContactPlaceholder, contact);
-
-            // Add extension if its missing.
-            return Path.ChangeExtension(fileName, "mp3");
+            return fileName.Replace(ContactPlaceholder, contact);
         }
 
         /// <summary>
@@ -135,6 +135,7 @@ namespace SkypeAutoRecorder.Configuration
             DefaultRawFileName = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Skype Records\\" + DefaultFileName);
             ExcludedContacts = "echo123";
+            VolumeScale = 1;
         }
 
         /// <summary>
@@ -217,6 +218,15 @@ namespace SkypeAutoRecorder.Configuration
                 }
             }
         }
+
+        /// <summary>
+        /// Gets or sets the volume scale for the recorded file.
+        /// </summary>
+        /// <value>
+        /// The volume scale.
+        /// </value>
+        [XmlElement("VolumeScale")]
+        public int VolumeScale { get; set; }
 
         /// <summary>
         /// Saves current settings to file.

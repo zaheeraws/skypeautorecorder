@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using SkypeAutoRecorder.Configuration;
 
 namespace SkypeAutoRecorder.Core.Sound
 {
@@ -41,10 +42,11 @@ namespace SkypeAutoRecorder.Core.Sound
         /// </summary>
         /// <param name="wavFileName">Name of the input WAV file.</param>
         /// <param name="mp3FileName">Name for the resulting MP3 file.</param>
+        /// <param name="volumeScale">Volume scale of the resulting file.</param>
         /// <returns><c>true</c> if encoding finished successfuly; otherwise, <c>false</c>.</returns>
-        public static bool EncodeMp3(string wavFileName, string mp3FileName)
+        public static bool EncodeMp3(string wavFileName, string mp3FileName, int volumeScale)
         {
-            var arguments = "-V2 \"" + wavFileName + "\" \"" + mp3FileName + "\"";
+            var arguments = "-V2 --scale " + volumeScale + " \"" + wavFileName + "\" \"" + mp3FileName + "\"";
             return runProcess(LamePath, arguments);
         }
 

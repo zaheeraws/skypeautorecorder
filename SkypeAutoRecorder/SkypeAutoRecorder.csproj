@@ -152,6 +152,7 @@
     <Resource Include="Images\Info.png" />
     <Resource Include="Images\Remove.png" />
     <Resource Include="Images\SelectFolder.png" />
+    <Resource Include="Images\Volume.png" />
     <Content Include="Libs\Lame\lame.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

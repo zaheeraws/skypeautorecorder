@@ -184,13 +184,14 @@ namespace SkypeAutoRecorder
                 }
                 
                 // Encode merged file to MP3.
-                if (dirNotFound || !SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName))
+                if (dirNotFound ||
+                    !SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName, Settings.Current.VolumeScale))
                 {
                     // Encode to settings folder with default file name if unable encode to the desired file name.
                     var fileName = Path.Combine(Settings.SettingsFolder,
                         Settings.RenderFileName(Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime));
-                    
-                    if (!SoundProcessor.EncodeMp3(mergedFileName, fileName))
+
+                    if (!SoundProcessor.EncodeMp3(mergedFileName, fileName, Settings.Current.VolumeScale))
                     {
                         // If encoding fails anyway then return WAV file to user.
                         fileName = Path.ChangeExtension(fileName, "wav");

@@ -4,8 +4,8 @@
         xmlns:rules="clr-namespace:SkypeAutoRecorder.Configuration"
         xmlns:cmds="clr-namespace:SkypeAutoRecorder"
         Title="Settings" WindowStartupLocation="CenterScreen"
-        Height="450" Width="520" Icon="/SkypeAutoRecorder;component/Images/MainIcon.ico" ResizeMode="CanResize"
-        MinHeight="390" MinWidth="500" SnapsToDevicePixels="True">
+        Height="450" Width="600" Icon="/SkypeAutoRecorder;component/Images/MainIcon.ico" ResizeMode="CanResize"
+        MinHeight="445" MinWidth="500" SnapsToDevicePixels="True">
   <Window.Resources>
     <Style x:Key="FileNameTextBox" TargetType="TextBox">
       <Style.Triggers>
@@ -56,14 +56,14 @@
       </ListView.ItemContainerStyle>
       <ListView.View>
         <GridView>
-          <GridViewColumn Width="195" Header="Contacts">
+          <GridViewColumn Width="205" Header="Contacts">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding Contacts}" />
               </DataTemplate>
             </GridViewColumn.CellTemplate>
           </GridViewColumn>
-          <GridViewColumn Width="195" Header="File name">
+          <GridViewColumn Width="270" Header="File name">
             <GridViewColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Style="{DynamicResource FileNameTextBox}">
@@ -179,6 +179,21 @@
         <TextBlock Margin="3,0,0,0" Text="Don't record conversations with contacts:" />
       </StackPanel>
       <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />
+      <StackPanel Orientation="Horizontal" Margin="3,15,3,1">
+        <Image Source="/SkypeAutoRecorder;component/Images/Volume.png" />
+        <TextBlock Margin="3,0,0,0" Text="Increase volume of the recorded file:" />
+      </StackPanel>
+      <Grid Margin="3,1,3,3">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Slider Name="volumeScaleSlider" Value="{Binding VolumeScale}" Maximum="50" SmallChange="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Minimum="1" />
+        <TextBlock Grid.Column="1" Margin="3,0,0,0" Text="X" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="2" Margin="1,0,0,0" Text="{Binding ElementName=volumeScaleSlider, Path=Value}"
+                   VerticalAlignment="Center" />
+      </Grid>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,2,0">
         <Button Margin="1" Padding="3" Width="85" IsDefault="True"
                 Command="{x:Static cmds:SettingsWindow.OkCommand}">OK</Button>
