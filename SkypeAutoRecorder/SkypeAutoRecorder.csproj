@@ -73,6 +73,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Configuration\PathValidationRule.cs" />
+    <Compile Include="Configuration\ValidationHelper.cs" />
     <Compile Include="Core\Sound\SoundProcessor.cs" />
     <Compile Include="ProcessingThreadData.cs" />
     <Compile Include="SettingsWindow.xaml.cs">

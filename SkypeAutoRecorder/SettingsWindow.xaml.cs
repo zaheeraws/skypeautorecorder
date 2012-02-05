@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Windows.Navigation;
 using Microsoft.Win32;
 using SkypeAutoRecorder.Configuration;
@@ -17,6 +19,13 @@ namespace SkypeAutoRecorder
     {
         private const string AutostartRegistryKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
         private const string AutostartValueName = Settings.ApplicationName;
+
+        /// <summary>
+        /// Shows how many validation errors filter list view contains.
+        /// </summary>
+        private int filtersValidationErrors;
+        
+        public static RoutedCommand OkCommand = new RoutedCommand();
         
         public SettingsWindow(Settings currentSettings)
         {
@@ -35,18 +44,7 @@ namespace SkypeAutoRecorder
 
         public Settings NewSettings { get; set; }
 
-        private void addButtonClick(object sender, RoutedEventArgs e)
-        {
-            NewSettings.Filters.Add(new Filter());
-        }
-
-        private void removeButtonClick(object sender, RoutedEventArgs e)
-        {
-            var filter = (Filter)((Button)sender).Tag;
-            NewSettings.Filters.Remove(filter);
-        }
-
-        private void okButtonClick(object sender, RoutedEventArgs e)
+        private void okCommandExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             // Update registry Run section for autostart.
             if (Autostart)
@@ -62,6 +60,22 @@ namespace SkypeAutoRecorder
             }
 
             DialogResult = true;
+        }
+
+        private void okCommandCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = ValidationHelper.InputsAreValid(sender as DependencyObject) && filtersValidationErrors <= 0;
+        }
+
+        private void addButtonClick(object sender, RoutedEventArgs e)
+        {
+            NewSettings.Filters.Add(new Filter());
+        }
+
+        private void removeButtonClick(object sender, RoutedEventArgs e)
+        {
+            var filter = (Filter)((Button)sender).Tag;
+            NewSettings.Filters.Remove(filter);
         }
 
         private void onPlaceholderClick(object sender, RequestNavigateEventArgs e)
@@ -85,6 +99,18 @@ namespace SkypeAutoRecorder
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 NewSettings.DefaultRawFileName = dialog.SelectedPath;
+            }
+        }
+
+        private void filtersListError(object sender, ValidationErrorEventArgs e)
+        {
+            if (e.Action == ValidationErrorEventAction.Added)
+            {
+                filtersValidationErrors++;
+            }
+            else
+            {
+                filtersValidationErrors--;
             }
         }
     }
