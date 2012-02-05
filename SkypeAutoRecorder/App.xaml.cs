@@ -167,8 +167,24 @@ namespace SkypeAutoRecorder
                 File.Delete(data.TempInFileName);
                 File.Delete(data.TempOutFileName);
 
+                // Create path of resulting MP3 file if it doesn't exists.
+                var path = Path.GetDirectoryName(data.RecordFileName);
+                var dirNotFound = false;
+                if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
+                        // This exception is thrown when target path is not available (for example, some removable drive).
+                        dirNotFound = true;
+                    }
+                }
+                
                 // Encode merged file to MP3.
-                if (!SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName))
+                if (dirNotFound || !SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName))
                 {
                     // Encode to settings folder with default file name if unable encode to the desired file name.
                     var fileName = Path.Combine(Settings.SettingsFolder,

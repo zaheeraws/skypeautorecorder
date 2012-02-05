@@ -71,7 +71,7 @@ namespace SkypeAutoRecorder.Configuration
         /// <returns>The actual file name for settings.</returns>
         public static string RenderFileName(string rawFileName, string contact, DateTime dateTime)
         {
-            if (string.IsNullOrEmpty(rawFileName))
+            if (rawFileName == null)
             {
                 return null;
             }
@@ -87,13 +87,6 @@ namespace SkypeAutoRecorder.Configuration
             // Replace placeholders.
             fileName = fileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
             fileName = fileName.Replace(ContactPlaceholder, contact);
-
-            // Check if path exists and create it.
-            var path = Path.GetDirectoryName(fileName);
-            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
 
             // Add extension if its missing.
             return Path.ChangeExtension(fileName, "mp3");
@@ -267,12 +260,7 @@ namespace SkypeAutoRecorder.Configuration
                 }
 
                 // Try to use default file name.
-                if (RecordUnfiltered && !string.IsNullOrEmpty(DefaultRawFileName))
-                {
-                    return RenderFileName(DefaultRawFileName, contact, dateTime);
-                }
-
-                return null;
+                return RecordUnfiltered ? RenderFileName(DefaultRawFileName, contact, dateTime) : null;
             }
             
             return RenderFileName(filter.RawFileName, contact, dateTime);
