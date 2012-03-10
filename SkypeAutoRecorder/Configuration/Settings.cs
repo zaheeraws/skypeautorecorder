@@ -26,7 +26,9 @@ namespace SkypeAutoRecorder.Configuration
 
         private const string DateTimePlaceholder = "{date-time}";
         private const string ContactPlaceholder = "{contact}";
+        private const string DurationPlaceholder = "{duration}";
         private const string DateTimeFormat = "yyyy-MM-dd HH.mm.ss";
+        private const string DurationFormat = @"hh\.mm\.ss";
 
         /// <summary>
         /// File name where application settings are stored.
@@ -53,7 +55,14 @@ namespace SkypeAutoRecorder.Configuration
                 var serializer = new XmlSerializer(typeof(Settings));
                 using (var reader = new StreamReader(SettingsFileName))
                 {
-                    Current = (Settings)serializer.Deserialize(reader);
+                    try
+                    {
+                        Current = (Settings)serializer.Deserialize(reader);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        Current = new Settings();
+                    }
                 }
             }
             else
@@ -78,8 +87,9 @@ namespace SkypeAutoRecorder.Configuration
         /// <param name="rawFileName">Name of the file with placeholders.</param>
         /// <param name="contact">The contact name.</param>
         /// <param name="dateTime">The date time.</param>
+        /// <param name="duration">The duration of recorded conversation.</param>
         /// <returns>The actual file name for settings.</returns>
-        public static string RenderFileName(string rawFileName, string contact, DateTime dateTime)
+        public static string RenderFileName(string rawFileName, string contact, DateTime dateTime, TimeSpan duration)
         {
             if (rawFileName == null)
             {
@@ -99,6 +109,7 @@ namespace SkypeAutoRecorder.Configuration
 
             // Replace placeholders.
             fileName = fileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
+            fileName = fileName.Replace(DurationPlaceholder, duration.ToString(DurationFormat));
             return fileName.Replace(ContactPlaceholder, contact);
         }
 
@@ -259,13 +270,12 @@ namespace SkypeAutoRecorder.Configuration
         }
 
         /// <summary>
-        /// Gets the name of the file for saving recorded conversation depends on current settings and specified data.
+        /// Gets the raw name of the file for saving recorded conversation depends on current settings.
         /// </summary>
         /// <param name="contact">The contact name.</param>
-        /// <param name="dateTime">The date time for placeholder.</param>
-        /// <returns>The file name for saving record or <c>null</c> if application shouldn't record conversation
+        /// <returns>The raw file name for saving record or <c>null</c> if application shouldn't record conversation
         /// according to current settings.</returns>
-        public string GetFileName(string contact, DateTime dateTime)
+        public string GetRawFileName(string contact)
         {
             // Find contact filter.
             var filter = Filters.FirstOrDefault(f => contactsContain(f.Contacts, contact));
@@ -280,10 +290,10 @@ namespace SkypeAutoRecorder.Configuration
                 }
 
                 // Try to use default file name.
-                return RecordUnfiltered ? RenderFileName(DefaultRawFileName, contact, dateTime) : null;
+                return RecordUnfiltered ? DefaultRawFileName : null;
             }
             
-            return RenderFileName(filter.RawFileName, contact, dateTime);
+            return filter.RawFileName;
         }
 
         /// <summary>

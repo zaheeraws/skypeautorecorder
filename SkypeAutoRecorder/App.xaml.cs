@@ -119,7 +119,7 @@ namespace SkypeAutoRecorder
         {
             _callerName = conversationEventArgs.CallerName;
             _startRecordDateTime = DateTime.Now;
-            _recordFileName = Settings.Current.GetFileName(_callerName, _startRecordDateTime);
+            _recordFileName = Settings.Current.GetRawFileName(_callerName);
             if (_recordFileName != null)
             {
                 // Update tray icon information.
@@ -144,7 +144,7 @@ namespace SkypeAutoRecorder
                                 {
                                     TempInFileName = _tempInFileName,
                                     TempOutFileName = _tempOutFileName,
-                                    RecordFileName = _recordFileName,
+                                    RecordRawFileName = _recordFileName,
                                     CallerName = _callerName,
                                     StartRecordDateTime = _startRecordDateTime
                                 };
@@ -172,12 +172,15 @@ namespace SkypeAutoRecorder
                 File.Delete(data.TempOutFileName);
 
                 // Encode merged file to MP3.
-                if (!DirectoriesHelper.CreateDirectory(data.RecordFileName) ||
-                    !SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName, Settings.Current.VolumeScale))
+                var duration = DateTime.Now - data.StartRecordDateTime;
+                var recordFileName = Settings.RenderFileName(
+                    data.RecordRawFileName, data.CallerName, data.StartRecordDateTime, duration);
+                if (!DirectoriesHelper.CreateDirectory(recordFileName) ||
+                    !SoundProcessor.EncodeMp3(mergedFileName, recordFileName, Settings.Current.VolumeScale))
                 {
                     // Encode to settings folder with default file name if unable encode to the desired file name.
-                    var fileName = Path.Combine(Settings.SettingsFolder,
-                        Settings.RenderFileName(Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime));
+                    var fileName = Path.Combine(Settings.SettingsFolder, Settings.RenderFileName(
+                        Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime, duration));
 
                     if (!SoundProcessor.EncodeMp3(mergedFileName, fileName, Settings.Current.VolumeScale))
                     {
@@ -189,7 +192,7 @@ namespace SkypeAutoRecorder
                     // Report about error and ask about opening folder with resulting file.
                     var openFolder = MessageBox.Show(
                         string.Format("Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?",
-                            data.RecordFileName, fileName),
+                            data.RecordRawFileName, fileName),
                         "Saving error", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
 
                     // Open folder.

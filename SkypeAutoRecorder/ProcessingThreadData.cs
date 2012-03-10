@@ -9,7 +9,7 @@ namespace SkypeAutoRecorder
     {
         public string TempInFileName;
         public string TempOutFileName;
-        public string RecordFileName;
+        public string RecordRawFileName;
         public string CallerName;
         public DateTime StartRecordDateTime;
     }

@@ -135,6 +135,14 @@
                 <TextBlock>Copy to clipboard</TextBlock>
               </ToolTip>
             </Hyperlink.ToolTip>
+          </Hyperlink>,
+          <Hyperlink NavigateUri="" Tag="{}{duration}" RequestNavigate="onPlaceholderClick">
+            <TextBlock>{duration}</TextBlock>
+            <Hyperlink.ToolTip>
+              <ToolTip>
+                <TextBlock>Copy to clipboard</TextBlock>
+              </ToolTip>
+            </Hyperlink.ToolTip>
           </Hyperlink>.
         </TextBlock>
       </StackPanel>
