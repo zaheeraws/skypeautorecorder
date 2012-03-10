@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core;
 using SkypeAutoRecorder.Core.Sound;
+using SkypeAutoRecorder.Helpers;
 using MessageBox = System.Windows.MessageBox;
 
 namespace SkypeAutoRecorder
@@ -125,8 +126,8 @@ namespace SkypeAutoRecorder
                 setTrayIconRecording();
                 
                 // Get temp files.
-                _tempInFileName = Path.GetTempFileName();
-                _tempOutFileName = Path.GetTempFileName();
+                _tempInFileName = Settings.GetTempFileName("1");
+                _tempOutFileName = Settings.GetTempFileName("2");
 
                 _connector.StartRecord(_tempInFileName, _tempOutFileName);
             }
@@ -157,34 +158,21 @@ namespace SkypeAutoRecorder
         {
             var data = (ProcessingThreadData)dataObject;
 
+            // Wait while files are in use.
+            while (FilesHelper.FileIsInUse(data.TempInFileName) || FilesHelper.FileIsInUse(data.TempOutFileName))
+            {
+            }
+
             // Merge channels.
-            var mergedFileName = Path.GetTempFileName();
-            File.Delete(mergedFileName);
-            mergedFileName += ".wav";
+            var mergedFileName = Settings.GetTempFileName();
 
             if (SoundProcessor.MergeChannels(data.TempInFileName, data.TempOutFileName, mergedFileName))
             {
                 File.Delete(data.TempInFileName);
                 File.Delete(data.TempOutFileName);
 
-                // Create path of resulting MP3 file if it doesn't exists.
-                var path = Path.GetDirectoryName(data.RecordFileName);
-                var dirNotFound = false;
-                if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-                    catch (DirectoryNotFoundException)
-                    {
-                        // This exception is thrown when target path is not available (for example, some removable drive).
-                        dirNotFound = true;
-                    }
-                }
-                
                 // Encode merged file to MP3.
-                if (dirNotFound ||
+                if (!DirectoriesHelper.CreateDirectory(data.RecordFileName) ||
                     !SoundProcessor.EncodeMp3(mergedFileName, data.RecordFileName, Settings.Current.VolumeScale))
                 {
                     // Encode to settings folder with default file name if unable encode to the desired file name.
@@ -200,8 +188,7 @@ namespace SkypeAutoRecorder
 
                     // Report about error and ask about opening folder with resulting file.
                     var openFolder = MessageBox.Show(
-                        string.Format(
-                            "Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?",
+                        string.Format("Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?",
                             data.RecordFileName, fileName),
                         "Saving error", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
 

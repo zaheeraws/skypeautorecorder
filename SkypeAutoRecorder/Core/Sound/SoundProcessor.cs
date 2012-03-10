@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using SkypeAutoRecorder.Configuration;
 
 namespace SkypeAutoRecorder.Core.Sound
 {

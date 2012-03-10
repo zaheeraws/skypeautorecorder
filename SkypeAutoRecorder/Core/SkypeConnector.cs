@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
 using System.Windows.Interop;
@@ -106,12 +107,16 @@ namespace SkypeAutoRecorder.Core
             return match.Success ? match.Groups[1].Value : null;
         }
 
+        readonly StringBuilder _sb = new StringBuilder();
+
         /// <summary>
         /// Processes the Skype message.
         /// </summary>
         /// <param name="message">The Skype message.</param>
         private void processSkypeMessage(string message)
         {
+            _sb.AppendLine(message);
+
             // Status online.
             if (message == SkypeMessages.ConnectionStatusOnline)
             {
@@ -152,8 +157,10 @@ namespace SkypeAutoRecorder.Core
             }
 
             // Conversation ended.
-            numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS FINISHED");
-            if (!string.IsNullOrEmpty(numberFromStatus) && _currentCallNumber == int.Parse(numberFromStatus))
+            numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS FINISHED") ??
+                               parseSkypeMessage(message, "CALL (\\d+) STATUS UNPLACED");
+            if (!string.IsNullOrEmpty(numberFromStatus) && _currentCallNumber == int.Parse(numberFromStatus)
+                && _startConversationHandled)
             {
                 _startConversationHandled = false;
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));

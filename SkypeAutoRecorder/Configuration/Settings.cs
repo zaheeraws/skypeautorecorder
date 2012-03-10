@@ -63,6 +63,16 @@ namespace SkypeAutoRecorder.Configuration
         }
 
         /// <summary>
+        /// Gets the name of the temp wav file.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetTempFileName(string i = null)
+        {
+            return Path.Combine(Path.GetTempPath(),
+                "sar_" + DateTime.Now.ToString("HH_mm_ss") + (i == null ? string.Empty : "_" + i) + ".wav");
+        }
+
+        /// <summary>
         /// Creates the name of the file by replacing placeholders with actual data.
         /// </summary>
         /// <param name="rawFileName">Name of the file with placeholders.</param>
