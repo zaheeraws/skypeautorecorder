@@ -19,6 +19,8 @@ namespace SkypeAutoRecorder
     /// </summary>
     public partial class App
     {
+        private static readonly Mutex Mutex = new Mutex(true, "SkypeAutoRecorderOneInstanceMutex");
+
         #region Tray icons
 
         // Icons from the resources for displaying application status.
@@ -54,7 +56,7 @@ namespace SkypeAutoRecorder
             trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow()).DefaultItem = true;
             trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
             trayIcon.ContextMenu.MenuItems.Add("-");
-            trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
+            trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => closeApplication());
 
             return trayIcon;
         }
@@ -83,6 +85,13 @@ namespace SkypeAutoRecorder
 
         private void appStartup(object sender, StartupEventArgs e)
         {
+            // Only one instance of SkypeAutoRecorder is allowed.
+            if (!Mutex.WaitOne(TimeSpan.Zero, true))
+            {
+                Shutdown();
+                return;
+            }
+
             // Initialize tray icon.
             _trayIcon = buildTrayIcon();
             setTrayIconWaitingSkype();
@@ -135,23 +144,29 @@ namespace SkypeAutoRecorder
 
         private void onConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
         {
-            if (_recordFileName != null)
-            {
-                _connector.EndRecord();
+            convertRecordedFile();
+        }
 
-                // Start thread for processing sound.
-                var fileNames = new ProcessingThreadData
-                                {
-                                    TempInFileName = _tempInFileName,
-                                    TempOutFileName = _tempOutFileName,
-                                    RecordRawFileName = _recordFileName,
-                                    CallerName = _callerName,
-                                    StartRecordDateTime = _startRecordDateTime
-                                };
-                ThreadPool.QueueUserWorkItem(soundProcessing, fileNames);
+        private void convertRecordedFile()
+        {
+            if (_recordFileName == null)
+                return;
 
-                setTrayIconWaitingCalls();
-            }
+            _connector.EndRecord();
+
+            // Start thread for processing sound.
+            var fileNames = new ProcessingThreadData
+                            {
+                                TempInFileName = _tempInFileName,
+                                TempOutFileName = _tempOutFileName,
+                                RecordRawFileName = _recordFileName,
+                                CallerName = _callerName,
+                                StartRecordDateTime = _startRecordDateTime
+                            };
+
+            new Thread(soundProcessing).Start(fileNames);
+
+            setTrayIconWaitingCalls();
         }
 
         private void soundProcessing(object dataObject)
@@ -197,23 +212,23 @@ namespace SkypeAutoRecorder
 
                     // Open folder.
                     if (openFolder)
-                    {
                         Process.Start(Settings.SettingsFolder);
-                    }
                 }
 
                 File.Delete(mergedFileName);
             }
         }
 
-        private void appExit(object sender, ExitEventArgs e)
+        private void closeApplication()
         {
-            _trayIcon.Dispose();
+            _trayIcon.Visible = false;
+            convertRecordedFile();
 
-            if (_connector != null)
-            {
-                _connector.Dispose();
-            }
+            _trayIcon.Dispose();
+            _connector.Dispose();
+            Mutex.ReleaseMutex();
+
+            Shutdown();
         }
 
         #region Windows
@@ -227,9 +242,7 @@ namespace SkypeAutoRecorder
         private void openSettingsWindow()
         {
             if (_settingsWindow != null && _settingsWindow.IsLoaded)
-            {
                 return;
-            }
 
             // Create copy of the current settings to have a possibility of rollback changes.
             var settingsCopy = (Settings)Settings.Current.Clone();
@@ -253,9 +266,7 @@ namespace SkypeAutoRecorder
         private void onAboutClick(object sender, EventArgs eventArgs)
         {
             if (_aboutWindow != null && _aboutWindow.IsLoaded)
-            {
                 return;
-            }
 
             _aboutWindow = new AboutWindow();
             _aboutWindow.ShowDialog();

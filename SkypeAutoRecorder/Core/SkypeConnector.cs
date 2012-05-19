@@ -46,6 +46,18 @@ namespace SkypeAutoRecorder.Core
         public bool IsConnected { get; private set; }
 
         /// <summary>
+        /// Parses the skype message and returns its parameter.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="pattern">The pattern.</param>
+        /// <returns>First message parameter.</returns>
+        private static string parseSkypeMessage(string message, string pattern)
+        {
+            var match = Regex.Match(message, pattern);
+            return match.Success ? match.Groups[1].Value : null;
+        }
+
+        /// <summary>
         /// Enables connector to watch Skype events and messages.
         /// </summary>
         public void Enable()
@@ -92,19 +104,6 @@ namespace SkypeAutoRecorder.Core
             var data = new CopyDataStruct { Id = "1", Size = command.Length + 1, Data = command };
             WinApiWrapper.SendMessage(
                 _skypeWindowHandle, WinApiConstants.WM_COPYDATA, _windowHandleSource.Handle, ref data);
-        }
-
-        /// <summary>
-        /// Parses the skype message and returns its parameter.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="pattern">The pattern.</param>
-        /// <returns>First message parameter.</returns>
-        private string parseSkypeMessage(string message, string pattern)
-        {
-            var regex = new Regex(pattern);
-            var match = regex.Match(message);
-            return match.Success ? match.Groups[1].Value : null;
         }
 
         readonly StringBuilder _sb = new StringBuilder();
@@ -157,10 +156,8 @@ namespace SkypeAutoRecorder.Core
             }
 
             // Conversation ended.
-            numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS FINISHED") ??
-                               parseSkypeMessage(message, "CALL (\\d+) STATUS UNPLACED");
-            if (!string.IsNullOrEmpty(numberFromStatus) && _currentCallNumber == int.Parse(numberFromStatus)
-                && _startConversationHandled)
+            var statusFinish = Regex.IsMatch(message, string.Format("CALL {0} STATUS FINISHED", _currentCallNumber));
+            if ((statusFinish || message == "USERSTATUS OFFLINE") && _startConversationHandled)
             {
                 _startConversationHandled = false;
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));
