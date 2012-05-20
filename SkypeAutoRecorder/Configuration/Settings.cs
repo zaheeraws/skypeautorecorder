@@ -157,6 +157,8 @@ namespace SkypeAutoRecorder.Configuration
                 Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Skype Records\\" + DefaultFileName);
             ExcludedContacts = "echo123";
             VolumeScale = 1;
+            SoundSampleFrequency = "32";
+            SoundBitrate = "256";
         }
 
         /// <summary>
@@ -248,6 +250,42 @@ namespace SkypeAutoRecorder.Configuration
         /// </value>
         [XmlElement("VolumeScale")]
         public int VolumeScale { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value indicating whether recorder should separate sound channels on MP3 creating or not.
+        /// </summary>
+        /// <value>
+        /// The value indicating whether recorder should separate sound channels on MP3 creating or not.
+        /// </value>
+        [XmlElement("SeparateSoundChannels")]
+        public int SeparateSoundChannels { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether recorder should create MP3 in high quality sound.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if recorder should create MP3 in high quality sound; otherwise, <c>false</c>.
+        /// </value>
+        [XmlElement("HighQualityEncoding")]
+        public bool HighQualitySound { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sound sample frequency.
+        /// </summary>
+        /// <value>
+        /// The sound sample frequency.
+        /// </value>
+        [XmlElement("SoundSampleFrequency")]
+        public string SoundSampleFrequency { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sound bitrate.
+        /// </summary>
+        /// <value>
+        /// The sound bitrate.
+        /// </value>
+        [XmlElement("SoundBitrate")]
+        public string SoundBitrate { get; set; }
 
         /// <summary>
         /// Saves current settings to file.

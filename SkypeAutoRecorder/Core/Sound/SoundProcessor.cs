@@ -45,7 +45,7 @@ namespace SkypeAutoRecorder.Core.Sound
         /// <returns><c>true</c> if encoding finished successfuly; otherwise, <c>false</c>.</returns>
         public static bool EncodeMp3(string wavFileName, string mp3FileName, int volumeScale)
         {
-            var arguments = "-V2 --scale " + volumeScale + " \"" + wavFileName + "\" \"" + mp3FileName + "\"";
+            var arguments = "-V0 --scale " + volumeScale + " \"" + wavFileName + "\" \"" + mp3FileName + "\"";
             return runProcess(LamePath, arguments);
         }
 
