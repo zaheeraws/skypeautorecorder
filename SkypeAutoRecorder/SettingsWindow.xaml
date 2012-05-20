@@ -202,11 +202,17 @@
         <TextBlock Grid.Column="2" Margin="1,0,0,0" Text="{Binding ElementName=volumeScaleSlider, Path=Value}"
                    VerticalAlignment="Center" />
       </Grid>
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,2,0">
-        <Button Margin="1" Padding="3" Width="85" IsDefault="True"
+      <Grid Margin="0,20,2,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Button Margin="1" HorizontalAlignment="Left" Padding="3" Width="115" Click="resetToDefaultButtonClick">Reset to default</Button>
+        <Button Grid.Column="1" Margin="1" Padding="3" Width="85" IsDefault="True"
                 Command="{x:Static cmds:SettingsWindow.OkCommand}">OK</Button>
-        <Button Margin="1" Padding="3" Width="85" IsCancel="True">Cancel</Button>
-      </StackPanel>
+        <Button Grid.Column="2" Margin="1" Padding="3" Width="85" IsCancel="True">Cancel</Button>
+      </Grid>
     </StackPanel>
   </Grid>
 </Window>

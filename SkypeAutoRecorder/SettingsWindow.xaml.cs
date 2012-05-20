@@ -23,7 +23,7 @@ namespace SkypeAutoRecorder
         /// <summary>
         /// Shows how many validation errors filter list view contains.
         /// </summary>
-        private int filtersValidationErrors;
+        private int _filtersValidationErrors;
         
         public static RoutedCommand OkCommand = new RoutedCommand();
         
@@ -64,7 +64,7 @@ namespace SkypeAutoRecorder
 
         private void okCommandCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = ValidationHelper.InputsAreValid(sender as DependencyObject) && filtersValidationErrors <= 0;
+            e.CanExecute = ValidationHelper.InputsAreValid(sender as DependencyObject) && _filtersValidationErrors <= 0;
         }
 
         private void addButtonClick(object sender, RoutedEventArgs e)
@@ -102,15 +102,21 @@ namespace SkypeAutoRecorder
             }
         }
 
+        private void resetToDefaultButtonClick(object sender, RoutedEventArgs e)
+        {
+            NewSettings = new Settings();
+            mainGrid.DataContext = NewSettings;
+        }
+
         private void filtersListError(object sender, ValidationErrorEventArgs e)
         {
             if (e.Action == ValidationErrorEventAction.Added)
             {
-                filtersValidationErrors++;
+                _filtersValidationErrors++;
             }
             else
             {
-                filtersValidationErrors--;
+                _filtersValidationErrors--;
             }
         }
     }

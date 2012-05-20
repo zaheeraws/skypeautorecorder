@@ -165,6 +165,8 @@ namespace SkypeAutoRecorder
                                 StartRecordDateTime = _startRecordDateTime
                             };
 
+            // Need to use Thread not from ThreadPool, because we want to run sound processing
+            // even after application closes.
             new Thread(soundProcessing).Start(fileNames);
 
             setTrayIconWaitingCalls();
