@@ -19,7 +19,8 @@ namespace SkypeAutoRecorder
     /// </summary>
     public partial class App
     {
-        private static readonly Mutex Mutex = new Mutex(true, "SkypeAutoRecorderOneInstanceMutex");
+        private readonly UniqueInstanceChecker _instanceChecker =
+            new UniqueInstanceChecker("SkypeAutoRecorderOneInstanceMutex");
 
         #region Tray icons
 
@@ -56,7 +57,7 @@ namespace SkypeAutoRecorder
             trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow()).DefaultItem = true;
             trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
             trayIcon.ContextMenu.MenuItems.Add("-");
-            trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => closeApplication());
+            trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
 
             return trayIcon;
         }
@@ -86,7 +87,7 @@ namespace SkypeAutoRecorder
         private void appStartup(object sender, StartupEventArgs e)
         {
             // Only one instance of SkypeAutoRecorder is allowed.
-            if (!Mutex.WaitOne(TimeSpan.Zero, true))
+            if (_instanceChecker.IsAlreadyRunning())
             {
                 Shutdown();
                 return;
@@ -219,21 +220,22 @@ namespace SkypeAutoRecorder
             }
         }
 
-        private void closeApplication()
+        private void onApplicationExit(object sender, ExitEventArgs e)
         {
-            _trayIcon.Visible = false;
             convertRecordedFile();
 
-            _trayIcon.Dispose();
-            _connector.Dispose();
-            Mutex.ReleaseMutex();
+            if (_trayIcon != null)
+                _trayIcon.Dispose();
+            if (_connector != null)
+                _connector.Dispose();
 
-            Shutdown();
+            _instanceChecker.Release();
         }
 
         #region Windows
 
         private SettingsWindow _settingsWindow;
+
         private AboutWindow _aboutWindow;
 
         /// <summary>
