@@ -181,10 +181,11 @@ namespace SkypeAutoRecorder
             {
             }
 
-            // Merge channels.
-            var mergedFileName = Settings.GetTempFileName();
+            // Join channels.
+            var joinedFileName = Settings.GetTempFileName();
 
-            if (SoundProcessor.MergeChannels(data.TempInFileName, data.TempOutFileName, mergedFileName))
+            if (SoundProcessor.JoinChannels(
+                data.TempInFileName, data.TempOutFileName, joinedFileName, Settings.Current.SeparateSoundChannels))
             {
                 File.Delete(data.TempInFileName);
                 File.Delete(data.TempOutFileName);
@@ -194,17 +195,21 @@ namespace SkypeAutoRecorder
                 var recordFileName = Settings.RenderFileName(
                     data.RecordRawFileName, data.CallerName, data.StartRecordDateTime, duration);
                 if (!DirectoriesHelper.CreateDirectory(recordFileName) ||
-                    !SoundProcessor.EncodeMp3(mergedFileName, recordFileName, Settings.Current.VolumeScale))
+                    !SoundProcessor.EncodeMp3(joinedFileName, recordFileName, Settings.Current.VolumeScale,
+                        Settings.Current.HighQualitySound, Settings.Current.SoundSampleFrequency,
+                        Settings.Current.SoundBitrate))
                 {
                     // Encode to settings folder with default file name if unable encode to the desired file name.
                     var fileName = Path.Combine(Settings.SettingsFolder, Settings.RenderFileName(
                         Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime, duration));
 
-                    if (!SoundProcessor.EncodeMp3(mergedFileName, fileName, Settings.Current.VolumeScale))
+                    if (!SoundProcessor.EncodeMp3(joinedFileName, fileName, Settings.Current.VolumeScale,
+                            Settings.Current.HighQualitySound, Settings.Current.SoundSampleFrequency,
+                            Settings.Current.SoundBitrate))
                     {
                         // If encoding fails anyway then return WAV file to user.
                         fileName = Path.ChangeExtension(fileName, "wav");
-                        File.Copy(mergedFileName, fileName, true);
+                        File.Copy(joinedFileName, fileName, true);
                     }
 
                     // Report about error and ask about opening folder with resulting file.
@@ -218,7 +223,7 @@ namespace SkypeAutoRecorder
                         Process.Start(Settings.SettingsFolder);
                 }
 
-                File.Delete(mergedFileName);
+                File.Delete(joinedFileName);
             }
         }
 

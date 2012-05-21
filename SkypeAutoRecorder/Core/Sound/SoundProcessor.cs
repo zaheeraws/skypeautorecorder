@@ -24,15 +24,20 @@ namespace SkypeAutoRecorder.Core.Sound
         }
 
         /// <summary>
-        /// Merges the two sound channels.
+        /// Joins the two sound channels.
         /// </summary>
         /// <param name="channel1FileName">Name of the first channel file.</param>
         /// <param name="channel2FileName">Name of the second channel file.</param>
         /// <param name="resultFileName">Name for the resulting file.</param>
-        /// <returns><c>true</c> if merging finished successfuly; otherwise, <c>false</c>.</returns>
-        public static bool MergeChannels(string channel1FileName, string channel2FileName, string resultFileName)
+        /// <param name="separateChannels">Set to <c>true</c> to create file with separate sound channels;
+        /// set to <c>false</c> if channels should be mixed into one.</param>
+        /// <returns><c>true</c> if joining finished successfuly; otherwise, <c>false</c>.</returns>
+        public static bool JoinChannels(
+            string channel1FileName, string channel2FileName, string resultFileName, bool separateChannels)
         {
-            var arguments = "-m \"" + channel1FileName + "\" \"" + channel2FileName + "\" \"" + resultFileName + "\"";
+            var mode = separateChannels ? "-M" : "-m";
+            var arguments =
+                mode + " \"" + channel1FileName + "\" \"" + channel2FileName + "\" \"" + resultFileName + "\"";
             return runProcess(SoxPath, arguments);
         }
 
@@ -42,10 +47,15 @@ namespace SkypeAutoRecorder.Core.Sound
         /// <param name="wavFileName">Name of the input WAV file.</param>
         /// <param name="mp3FileName">Name for the resulting MP3 file.</param>
         /// <param name="volumeScale">Volume scale of the resulting file.</param>
+        /// <param name="highQuality">Should be created MP3 file with high quality or not.</param>
+        /// <param name="sampleFrequency">Sound sample frequency for high-quality MP3.</param>
+        /// <param name="bitrate">Sound bitrate for high-quality MP3.</param>
         /// <returns><c>true</c> if encoding finished successfuly; otherwise, <c>false</c>.</returns>
-        public static bool EncodeMp3(string wavFileName, string mp3FileName, int volumeScale)
+        public static bool EncodeMp3(string wavFileName, string mp3FileName, int volumeScale,
+            bool highQuality, string sampleFrequency = null, string bitrate = null)
         {
-            var arguments = "-V0 --scale " + volumeScale + " \"" + wavFileName + "\" \"" + mp3FileName + "\"";
+            var mode = highQuality ? ("--resample " + sampleFrequency + " -b " + bitrate) : "-V0";
+            var arguments = mode + " --scale " + volumeScale + " \"" + wavFileName + "\" \"" + mp3FileName + "\"";
             return runProcess(LamePath, arguments);
         }
 

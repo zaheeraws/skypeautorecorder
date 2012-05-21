@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -15,18 +16,22 @@ namespace SkypeAutoRecorder
     /// <summary>
     /// Interaction logic for SettingsWindow.xaml
     /// </summary>
-    public partial class SettingsWindow
+    public partial class SettingsWindow : INotifyPropertyChanged
     {
         private const string AutostartRegistryKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
         private const string AutostartValueName = Settings.ApplicationName;
+
+        public static RoutedCommand OkCommand = new RoutedCommand();
 
         /// <summary>
         /// Shows how many validation errors filter list view contains.
         /// </summary>
         private int _filtersValidationErrors;
-        
-        public static RoutedCommand OkCommand = new RoutedCommand();
-        
+
+        private bool _autostart;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public SettingsWindow(Settings currentSettings)
         {
             InitializeComponent();
@@ -40,9 +45,32 @@ namespace SkypeAutoRecorder
             Autostart = !string.IsNullOrEmpty(currentValue) && currentValue == Assembly.GetEntryAssembly().Location;
         }
 
-        public bool Autostart { get; set; }
+        public bool Autostart
+        {
+            get
+            {
+                return _autostart;
+            }
+            set
+            {
+                if (_autostart != value)
+                {
+                    _autostart = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("Autostart"));
+                }
+            }
+        }
 
         public Settings NewSettings { get; set; }
+
+        public void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
 
         private void okCommandExecuted(object sender, ExecutedRoutedEventArgs e)
         {
@@ -105,6 +133,7 @@ namespace SkypeAutoRecorder
         private void resetToDefaultButtonClick(object sender, RoutedEventArgs e)
         {
             NewSettings = new Settings();
+            Autostart = false;
             mainGrid.DataContext = NewSettings;
         }
 
