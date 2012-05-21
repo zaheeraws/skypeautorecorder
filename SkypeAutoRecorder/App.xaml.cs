@@ -54,7 +54,10 @@ namespace SkypeAutoRecorder
             };
 
             // Add context menu.
-            trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow()).DefaultItem = true;
+            trayIcon.ContextMenu.MenuItems.Add("Start recording").DefaultItem = true;
+            trayIcon.ContextMenu.MenuItems.Add("Stop recording");
+            trayIcon.ContextMenu.MenuItems.Add("-");
+            trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
             trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());

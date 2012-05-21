@@ -154,7 +154,8 @@
       </Button>
     </Grid>
     <StackPanel Grid.Row="4">
-      <CheckBox Margin="3,15,3,3" IsChecked="{Binding RecordUnfiltered}" VerticalAlignment="Center">
+      <CheckBox Margin="3,15,3,3" IsChecked="{Binding RecordUnfiltered}" VerticalAlignment="Center"
+                Name="recordUnfilteredCheckBox">
         <TextBlock Text="Record unfiltered conversations to:" />
       </CheckBox>
       <Grid Margin="20,3,3,3">
@@ -162,7 +163,8 @@
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBox Style="{DynamicResource FileNameTextBox}">
+        <TextBox Style="{DynamicResource FileNameTextBox}"
+                 IsEnabled="{Binding ElementName=recordUnfilteredCheckBox, Path=IsChecked}">
           <TextBox.Text>
             <Binding Path="DefaultRawFileName" UpdateSourceTrigger="PropertyChanged">
               <Binding.ValidationRules>
@@ -172,6 +174,7 @@
           </TextBox.Text>
         </TextBox>
         <Button Grid.Column="1" Margin="3,0,0,0" Width="20" Height="20" VerticalAlignment="Center"
+                IsEnabled="{Binding ElementName=recordUnfilteredCheckBox, Path=IsChecked}"
                 Click="browseDefaultFolderButtonClick">
           <Image Source="/SkypeAutoRecorder;component/Images/SelectFolder.png" />
           <Button.ToolTip>
@@ -187,14 +190,16 @@
       </StackPanel>
       <TextBox Margin="3,1,3,3" Text="{Binding ExcludedContacts}" />
       <StackPanel Orientation="Horizontal" Margin="3,15,3,1">
-        <CheckBox VerticalAlignment="Center" IsChecked="{Binding HighQualitySound}">
+        <CheckBox VerticalAlignment="Center" IsChecked="{Binding HighQualitySound}"
+                  Name="produceHighQualitySoundCheckBox">
           <TextBlock Text="Produce high-quality MP3-file:" />
         </CheckBox>
         <ComboBox Margin="10,0,0,0" ItemsSource="{Binding SoundSampleFrequencies}"
-                  SelectedValue="{Binding SoundSampleFrequency}" />
+                  SelectedValue="{Binding SoundSampleFrequency}"
+                  IsEnabled="{Binding ElementName=produceHighQualitySoundCheckBox, Path=IsChecked}" />
         <TextBlock Margin="5,0" Text="kHz" VerticalAlignment="Center" />
-        <ComboBox Margin="10,0,0,0" ItemsSource="{Binding SoundBitrates}"
-                  SelectedValue="{Binding SoundBitrate}" />
+        <ComboBox Margin="10,0,0,0" ItemsSource="{Binding SoundBitrates}" SelectedValue="{Binding SoundBitrate}"
+                  IsEnabled="{Binding ElementName=produceHighQualitySoundCheckBox, Path=IsChecked}" />
         <TextBlock Margin="5,0" Text="kbps" VerticalAlignment="Center" />
       </StackPanel>
       <CheckBox Margin="3,1,3,3" VerticalAlignment="Center" IsChecked="{Binding SeparateSoundChannels}">
