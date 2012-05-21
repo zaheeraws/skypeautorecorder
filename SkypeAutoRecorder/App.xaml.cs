@@ -40,6 +40,8 @@ namespace SkypeAutoRecorder
             new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(RecordingIconResource));
 
         private NotifyIcon _trayIcon;
+        private MenuItem _startRecordingMenuItem;
+        private MenuItem _stopRecordingMenuItem;
 
         /// <summary>
         /// Creates tray icon and context menu for it.
@@ -54,9 +56,14 @@ namespace SkypeAutoRecorder
             };
 
             // Add context menu.
-            var menuItem = new MenuItem("Start recording") { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5 };
-            trayIcon.ContextMenu.MenuItems.Add(menuItem);
-            trayIcon.ContextMenu.MenuItems.Add("Stop recording").Shortcut = Shortcut.CtrlShiftF10;
+            _startRecordingMenuItem = new MenuItem("Start recording")
+                                      { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5, Enabled = false };
+            trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
+
+            _stopRecordingMenuItem = new MenuItem("Stop recording")
+                                     { Shortcut = Shortcut.CtrlShiftF10, Enabled = false };
+            trayIcon.ContextMenu.MenuItems.Add(_stopRecordingMenuItem);
+
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
             trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
