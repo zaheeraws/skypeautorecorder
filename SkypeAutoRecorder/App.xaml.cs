@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
+using GlobalHotKey;
 using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core;
 using SkypeAutoRecorder.Core.Sound;
@@ -41,7 +43,7 @@ namespace SkypeAutoRecorder
 
         private NotifyIcon _trayIcon;
         private MenuItem _startRecordingMenuItem;
-        private MenuItem _stopRecordingMenuItem;
+        private MenuItem _cancelRecordingMenuItem;
 
         /// <summary>
         /// Creates tray icon and context menu for it.
@@ -56,13 +58,13 @@ namespace SkypeAutoRecorder
             };
 
             // Add context menu.
-            _startRecordingMenuItem = new MenuItem("Start recording")
-                                      { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5, Enabled = false };
+            _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecording())
+                                      { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5 };
             trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
 
-            _stopRecordingMenuItem = new MenuItem("Stop recording")
-                                     { Shortcut = Shortcut.CtrlShiftF10, Enabled = false };
-            trayIcon.ContextMenu.MenuItems.Add(_stopRecordingMenuItem);
+            _cancelRecordingMenuItem = new MenuItem("Cancel recording", (sender, args) => cancelRecording())
+                                     { Shortcut = Shortcut.CtrlShiftF10 };
+            trayIcon.ContextMenu.MenuItems.Add(_cancelRecordingMenuItem);
 
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
@@ -91,9 +93,20 @@ namespace SkypeAutoRecorder
             _trayIcon.Text = Settings.ApplicationName + ": Recording";
         }
 
+        private void onHotKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
+        {
+            if (keyPressedEventArgs.HotKey == _startRecordingHotKey)
+                startRecording();
+            else if (keyPressedEventArgs.HotKey == _cancelRecordingHotKey)
+                cancelRecording();
+        }
+
         #endregion
 
         private SkypeConnector _connector;
+        private HotKeyManager _hotKeyManager;
+        private HotKey _startRecordingHotKey;
+        private HotKey _cancelRecordingHotKey;
 
         private void appStartup(object sender, StartupEventArgs e)
         {
@@ -109,6 +122,12 @@ namespace SkypeAutoRecorder
             setTrayIconWaitingSkype();
             _trayIcon.MouseDoubleClick += (o, args) => openSettingsWindow();
             
+            // Initialize hot keys manager.
+            _hotKeyManager = new HotKeyManager();
+            _hotKeyManager.KeyPressed += onHotKeyPressed;
+            _startRecordingHotKey = _hotKeyManager.Register(Key.F5, ModifierKeys.Control | ModifierKeys.Shift);
+            _cancelRecordingHotKey = _hotKeyManager.Register(Key.F10, ModifierKeys.Control | ModifierKeys.Shift);
+
             // Initialize Skype connector.
             _connector = new SkypeConnector();
             _connector.Connected += (o, args) => setTrayIconWaitingCalls();
@@ -236,6 +255,14 @@ namespace SkypeAutoRecorder
 
                 File.Delete(joinedFileName);
             }
+        }
+
+        private void startRecording()
+        {
+        }
+
+        private void cancelRecording()
+        {
         }
 
         private void onApplicationExit(object sender, ExitEventArgs e)
