@@ -1,8 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
 using System.Windows.Interop;
+using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core.SkypeApi;
 using SkypeAutoRecorder.Core.WinApi;
 
@@ -106,7 +108,7 @@ namespace SkypeAutoRecorder.Core
                 _skypeWindowHandle, WinApiConstants.WM_COPYDATA, _windowHandleSource.Handle, ref data);
         }
 
-        readonly StringBuilder _sb = new StringBuilder();
+        private readonly StringBuilder _log = new StringBuilder();
 
         /// <summary>
         /// Processes the Skype message.
@@ -114,7 +116,7 @@ namespace SkypeAutoRecorder.Core
         /// <param name="message">The Skype message.</param>
         private void processSkypeMessage(string message)
         {
-            _sb.AppendLine(message);
+            _log.AppendLine(message);
 
             // Status online.
             if (message == SkypeMessages.ConnectionStatusOnline)
@@ -139,7 +141,10 @@ namespace SkypeAutoRecorder.Core
             {
                 _startConversationHandled = true;
 
-                _currentCallNumber = int.Parse(numberFromStatus ?? numberFromDuration);
+                var newCallNumber = int.Parse(numberFromStatus ?? numberFromDuration);
+                if (newCallNumber == _currentCallNumber)
+                    return;
+                _currentCallNumber = newCallNumber;
 
                 // Ask Skype for caller name.
                 sendSkypeCommand(string.Format(SkypeCommands.GetCallerName, _currentCallNumber));
@@ -157,7 +162,9 @@ namespace SkypeAutoRecorder.Core
 
             // Conversation ended.
             var statusFinish = Regex.IsMatch(message, string.Format("CALL {0} STATUS FINISHED", _currentCallNumber));
-            if ((statusFinish || message == "USERSTATUS OFFLINE") && _startConversationHandled)
+            var statusMissed = Regex.IsMatch(message, string.Format("CALL {0} STATUS MISSED", _currentCallNumber));
+            if ((statusFinish || statusMissed || message == "USERSTATUS OFFLINE") &&
+                _startConversationHandled)
             {
                 _startConversationHandled = false;
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));
@@ -169,6 +176,9 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public void Dispose()
         {
+            using (var log = File.CreateText(Path.Combine(Settings.SettingsFolder, "Log.log")))
+                log.Write(_log.ToString());
+
             // Remove hook of Windows API messages.
             _windowHandleSource.RemoveHook(apiMessagesHandler);
         }

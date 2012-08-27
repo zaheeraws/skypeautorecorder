@@ -59,11 +59,11 @@ namespace SkypeAutoRecorder
 
             // Add context menu.
             _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecording())
-                                      { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5 };
+                                      { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5, Enabled = false };
             trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
 
             _cancelRecordingMenuItem = new MenuItem("Cancel recording", (sender, args) => cancelRecording())
-                                     { Shortcut = Shortcut.CtrlShiftF10 };
+                                       { Shortcut = Shortcut.CtrlShiftF10, Enabled = false };
             trayIcon.ContextMenu.MenuItems.Add(_cancelRecordingMenuItem);
 
             trayIcon.ContextMenu.MenuItems.Add("-");

@@ -91,7 +91,7 @@ namespace SkypeAutoRecorder.Configuration
         /// Gets or sets a value indicating whether recorder should create MP3 in high quality sound.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if recorder should create MP3 in high quality sound; otherwise, <c>false</c>.
+        /// <c>true</c> if recorder should create MP3 in high quality sound; otherwise, <c>false</c>.
         /// </value>
         [XmlElement("HighQualityEncoding")]
         public bool HighQualitySound { get; set; }

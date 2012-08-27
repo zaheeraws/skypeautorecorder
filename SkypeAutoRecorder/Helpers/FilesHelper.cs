@@ -16,6 +16,9 @@ namespace SkypeAutoRecorder.Helpers
         {
             try
             {
+                if (!File.Exists(fileName))
+                    return false;
+
                 using (new FileStream(fileName, FileMode.Open))
                 {
                 }
