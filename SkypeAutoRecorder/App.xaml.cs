@@ -44,7 +44,8 @@ namespace SkypeAutoRecorder
         private NotifyIcon _trayIcon;
         private MenuItem _startRecordingMenuItem;
         private MenuItem _cancelRecordingMenuItem;
-        private MenuItem _browseMenuItem;
+        private MenuItem _browseDefaultMenuItem;
+        private MenuItem _browseLastRecordMenuItem;
 
         /// <summary>
         /// Creates tray icon and context menu for it.
@@ -69,9 +70,13 @@ namespace SkypeAutoRecorder
 
             trayIcon.ContextMenu.MenuItems.Add("-");
 
-            _browseMenuItem = new MenuItem("Browse records", (sender, args) => openRecordsFolder());
-            updateBrowseMenuItem();
-            trayIcon.ContextMenu.MenuItems.Add(_browseMenuItem);
+            _browseDefaultMenuItem = new MenuItem("Browse records", (sender, args) => openRecordsDefaultFolder());
+            updateBrowseDefaultMenuItem();
+            trayIcon.ContextMenu.MenuItems.Add(_browseDefaultMenuItem);
+
+            _browseLastRecordMenuItem =
+                new MenuItem("Browse last record", (sender, args) => openLastRecordFolder()) { Enabled = false };
+            trayIcon.ContextMenu.MenuItems.Add(_browseLastRecordMenuItem);
 
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
@@ -100,9 +105,9 @@ namespace SkypeAutoRecorder
             _trayIcon.Text = Settings.ApplicationName + ": Recording";
         }
 
-        private void updateBrowseMenuItem()
+        private void updateBrowseDefaultMenuItem()
         {
-            _browseMenuItem.Enabled = !string.IsNullOrEmpty(Settings.Current.DefaultRawFileName);
+            _browseDefaultMenuItem.Enabled = !string.IsNullOrEmpty(Settings.Current.DefaultRawFileName);
         }
 
         private void onHotKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
@@ -279,7 +284,7 @@ namespace SkypeAutoRecorder
             throw new NotImplementedException();
         }
 
-        private void openRecordsFolder()
+        private void openRecordsDefaultFolder()
         {
             // Clear default records path from all placeholders. Need to remove chars starting from the first
             // placeholder and then fix it by removing all chars after last backslash.
@@ -290,6 +295,11 @@ namespace SkypeAutoRecorder
             // Try to open resulting path without placeholders.
             // If it's incorrect or doesn't exist, Explorer opens some default folder automatically.
             Process.Start("explorer.exe", path);
+        }
+
+        private void openLastRecordFolder()
+        {
+            throw new NotImplementedException();
         }
 
         private void onApplicationExit(object sender, ExitEventArgs e)
@@ -335,7 +345,7 @@ namespace SkypeAutoRecorder
                 Settings.Current = _settingsWindow.NewSettings;
                 Settings.Save();
 
-                updateBrowseMenuItem();
+                updateBrowseDefaultMenuItem();
             }
         }
 
