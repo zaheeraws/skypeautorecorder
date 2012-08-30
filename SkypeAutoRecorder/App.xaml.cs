@@ -44,6 +44,7 @@ namespace SkypeAutoRecorder
         private NotifyIcon _trayIcon;
         private MenuItem _startRecordingMenuItem;
         private MenuItem _cancelRecordingMenuItem;
+        private MenuItem _browseMenuItem;
 
         /// <summary>
         /// Creates tray icon and context menu for it.
@@ -65,6 +66,12 @@ namespace SkypeAutoRecorder
             _cancelRecordingMenuItem = new MenuItem("Cancel recording", (sender, args) => cancelRecording())
                                        { Shortcut = Shortcut.CtrlShiftF10, Enabled = false };
             trayIcon.ContextMenu.MenuItems.Add(_cancelRecordingMenuItem);
+
+            trayIcon.ContextMenu.MenuItems.Add("-");
+
+            _browseMenuItem = new MenuItem("Browse records", (sender, args) => openRecordsFolder());
+            updateBrowseMenuItem();
+            trayIcon.ContextMenu.MenuItems.Add(_browseMenuItem);
 
             trayIcon.ContextMenu.MenuItems.Add("-");
             trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
@@ -91,6 +98,11 @@ namespace SkypeAutoRecorder
         {
             _trayIcon.Icon = _recordingIcon;
             _trayIcon.Text = Settings.ApplicationName + ": Recording";
+        }
+
+        private void updateBrowseMenuItem()
+        {
+            _browseMenuItem.Enabled = !string.IsNullOrEmpty(Settings.Current.DefaultRawFileName);
         }
 
         private void onHotKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
@@ -259,10 +271,25 @@ namespace SkypeAutoRecorder
 
         private void startRecording()
         {
+            throw new NotImplementedException();
         }
 
         private void cancelRecording()
         {
+            throw new NotImplementedException();
+        }
+
+        private void openRecordsFolder()
+        {
+            // Clear default records path from all placeholders. Need to remove chars starting from the first
+            // placeholder and then fix it by removing all chars after last backslash.
+            var path = Settings.Current.DefaultRawFileName;
+            path = path.Remove(path.IndexOf('{'));
+            path = path.Remove(path.LastIndexOf('\\'));
+
+            // Try to open resulting path without placeholders.
+            // If it's incorrect or doesn't exist, Explorer opens some default folder automatically.
+            Process.Start("explorer.exe", path);
         }
 
         private void onApplicationExit(object sender, ExitEventArgs e)
@@ -307,6 +334,8 @@ namespace SkypeAutoRecorder
                 // Replace current settings and save them to file if user has accepted changes in settings window.
                 Settings.Current = _settingsWindow.NewSettings;
                 Settings.Save();
+
+                updateBrowseMenuItem();
             }
         }
 
