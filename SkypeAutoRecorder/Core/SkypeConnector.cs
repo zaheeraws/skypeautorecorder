@@ -119,7 +119,7 @@ namespace SkypeAutoRecorder.Core
             _log.AppendLine(message);
 
             // Status online.
-            if (message == SkypeMessages.ConnectionStatusOnline)
+            if (message == SkypeMessages.ConnectionStatusOnline && !_startConversationHandled)
             {
                 invokeConnected();
                 return;
@@ -163,8 +163,7 @@ namespace SkypeAutoRecorder.Core
             // Conversation ended.
             var statusFinish = Regex.IsMatch(message, string.Format("CALL {0} STATUS FINISHED", _currentCallNumber));
             var statusMissed = Regex.IsMatch(message, string.Format("CALL {0} STATUS MISSED", _currentCallNumber));
-            if ((statusFinish || statusMissed || message == "USERSTATUS OFFLINE") &&
-                _startConversationHandled)
+            if ((statusFinish || statusMissed) && _startConversationHandled)
             {
                 _startConversationHandled = false;
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));
