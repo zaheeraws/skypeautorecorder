@@ -110,6 +110,15 @@ namespace SkypeAutoRecorder
             _browseDefaultMenuItem.Enabled = !string.IsNullOrEmpty(Settings.Current.DefaultRawFileName);
         }
 
+        private void updateLastRecordFileName(string fileName)
+        {
+            lock (_locker)
+            {
+                _lastRecordFileName = fileName;
+                _browseLastRecordMenuItem.Enabled = !string.IsNullOrEmpty(_lastRecordFileName);
+            }
+        }
+
         private void onHotKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
         {
             if (keyPressedEventArgs.HotKey == _startRecordingHotKey)
@@ -154,6 +163,8 @@ namespace SkypeAutoRecorder
             _connector.Enable();
         }
 
+        private readonly object _locker = new object();
+
         /// <summary>
         /// Final resulting file name after recording and all sound processing steps.
         /// </summary>
@@ -168,26 +179,30 @@ namespace SkypeAutoRecorder
         /// File name for the outgoing channel recorded by Skype.
         /// </summary>
         private string _tempOutFileName;
-
+        
         private string _callerName;
         private DateTime _startRecordDateTime;
+        private string _lastRecordFileName;
 
         private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
         {
             _callerName = conversationEventArgs.CallerName;
             _startRecordDateTime = DateTime.Now;
             _recordFileName = Settings.Current.GetRawFileName(_callerName);
-            if (_recordFileName != null)
-            {
-                // Update tray icon information.
-                setTrayIconRecording();
-                
-                // Get temp files.
-                _tempInFileName = Settings.GetTempFileName("1");
-                _tempOutFileName = Settings.GetTempFileName("2");
 
-                _connector.StartRecord(_tempInFileName, _tempOutFileName);
+            if (_recordFileName == null)
+            {
+                return;
             }
+
+            // Update tray icon information.
+            setTrayIconRecording();
+                
+            // Get temp files.
+            _tempInFileName = Settings.GetTempFileName("1");
+            _tempOutFileName = Settings.GetTempFileName("2");
+
+            _connector.StartRecord(_tempInFileName, _tempOutFileName);
         }
 
         private void onConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
@@ -247,22 +262,22 @@ namespace SkypeAutoRecorder
                         Settings.Current.SoundBitrate))
                 {
                     // Encode to settings folder with default file name if unable encode to the desired file name.
-                    var fileName = Path.Combine(Settings.SettingsFolder, Settings.RenderFileName(
+                    recordFileName = Path.Combine(Settings.SettingsFolder, Settings.RenderFileName(
                         Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime, duration));
 
-                    if (!SoundProcessor.EncodeMp3(joinedFileName, fileName, Settings.Current.VolumeScale,
+                    if (!SoundProcessor.EncodeMp3(joinedFileName, recordFileName, Settings.Current.VolumeScale,
                             Settings.Current.HighQualitySound, Settings.Current.SoundSampleFrequency,
                             Settings.Current.SoundBitrate))
                     {
                         // If encoding fails anyway then return WAV file to user.
-                        fileName = Path.ChangeExtension(fileName, "wav");
-                        File.Copy(joinedFileName, fileName, true);
+                        recordFileName = Path.ChangeExtension(recordFileName, "wav");
+                        File.Copy(joinedFileName, recordFileName, true);
                     }
 
                     // Report about error and ask about opening folder with resulting file.
                     var openFolder = MessageBox.Show(
                         string.Format("Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?",
-                            data.RecordRawFileName, fileName),
+                            data.RecordRawFileName, recordFileName),
                         "Saving error", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
 
                     // Open folder.
@@ -270,6 +285,7 @@ namespace SkypeAutoRecorder
                         Process.Start(Settings.SettingsFolder);
                 }
 
+                updateLastRecordFileName(recordFileName);
                 File.Delete(joinedFileName);
             }
         }
@@ -299,7 +315,8 @@ namespace SkypeAutoRecorder
 
         private void openLastRecordFolder()
         {
-            throw new NotImplementedException();
+            lock (_lastRecordFileName)
+                Process.Start("explorer.exe", Path.GetDirectoryName(_lastRecordFileName));
         }
 
         private void onApplicationExit(object sender, ExitEventArgs e)
