@@ -1,10 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
 using System.Windows.Interop;
-using SkypeAutoRecorder.Configuration;
 using SkypeAutoRecorder.Core.SkypeApi;
 using SkypeAutoRecorder.Core.WinApi;
 
@@ -108,16 +105,12 @@ namespace SkypeAutoRecorder.Core
                 _skypeWindowHandle, WinApiConstants.WM_COPYDATA, _windowHandleSource.Handle, ref data);
         }
 
-        private readonly StringBuilder _log = new StringBuilder();
-
         /// <summary>
         /// Processes the Skype message.
         /// </summary>
         /// <param name="message">The Skype message.</param>
         private void processSkypeMessage(string message)
         {
-            _log.AppendLine(message);
-
             // Status online.
             if (message == SkypeMessages.ConnectionStatusOnline && !_startConversationHandled)
             {
@@ -175,9 +168,6 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public void Dispose()
         {
-            using (var log = File.CreateText(Path.Combine(Settings.SettingsFolder, "Log.log")))
-                log.Write(_log.ToString());
-
             // Remove hook of Windows API messages.
             _windowHandleSource.RemoveHook(apiMessagesHandler);
         }
