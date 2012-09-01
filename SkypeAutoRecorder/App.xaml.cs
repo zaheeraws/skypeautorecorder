@@ -315,8 +315,13 @@ namespace SkypeAutoRecorder
 
         private void openLastRecordFolder()
         {
-            lock (_lastRecordFileName)
-                Process.Start("explorer.exe", Path.GetDirectoryName(_lastRecordFileName));
+            lock (_locker)
+            {
+                var args = File.Exists(_lastRecordFileName)
+                               ? string.Format("/select,\"{0}\"", _lastRecordFileName)
+                               : "\"" + Path.GetDirectoryName(_lastRecordFileName) + "\"";
+                Process.Start("explorer.exe", args);
+            }
         }
 
         private void onApplicationExit(object sender, ExitEventArgs e)
