@@ -157,7 +157,7 @@ namespace SkypeAutoRecorder
             // Initialize Skype connector.
             _connector = new SkypeConnector();
             _connector.Connected += (o, args) => setTrayIconWaitingCalls();
-            _connector.Disconnected += (o, args) => setTrayIconWaitingSkype();
+            _connector.Disconnected += connectorOnDisconnected;
             _connector.ConversationStarted += onConversationStarted;
             _connector.ConversationEnded += onConversationEnded;
             _connector.Enable();
@@ -179,9 +179,11 @@ namespace SkypeAutoRecorder
         /// File name for the outgoing channel recorded by Skype.
         /// </summary>
         private string _tempOutFileName;
-        
+
         private string _callerName;
+
         private DateTime _startRecordDateTime;
+
         private string _lastRecordFileName;
 
         private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
@@ -203,6 +205,12 @@ namespace SkypeAutoRecorder
             _tempOutFileName = Settings.GetTempFileName("2");
 
             _connector.StartRecord(_tempInFileName, _tempOutFileName);
+        }
+
+        private void connectorOnDisconnected(object sender, EventArgs eventArgs)
+        {
+            convertRecordedFile();
+            setTrayIconWaitingSkype();
         }
 
         private void onConversationEnded(object sender, ConversationEventArgs conversationEventArgs)

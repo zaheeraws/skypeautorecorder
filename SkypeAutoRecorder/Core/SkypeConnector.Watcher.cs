@@ -1,4 +1,5 @@
 ﻿using System.Timers;
+using SkypeAutoRecorder.Core.SkypeApi;
 using SkypeAutoRecorder.Core.WinApi;
 
 namespace SkypeAutoRecorder.Core
@@ -30,13 +31,22 @@ namespace SkypeAutoRecorder.Core
 
             if (!IsConnected && skypeActive)
             {
-                // Register Skype messages handler if Skype is active.
-                WinApiWrapper.SendMessage(BroadcastHandle, _skypeApiDiscover, _windowHandleSource.Handle);
+                enableSkypeMessaging();
             }
             else if (IsConnected && !skypeActive)
             {
                 invokeDisconnected();
             }
+        }
+
+        private void enableSkypeMessaging()
+        {
+            // Register API messages for communicating with Skype.
+            _skypeApiDiscover = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.Discover);
+            _skypeApiAttach = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.Attach);
+
+            // Register Skype messages handler if Skype is active.
+            WinApiWrapper.SendMessage(BroadcastHandle, _skypeApiDiscover, _windowHandleSource.Handle);
         }
     }
 }

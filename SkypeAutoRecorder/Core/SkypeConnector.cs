@@ -23,7 +23,7 @@ namespace SkypeAutoRecorder.Core
         {
             // Subscribe to Skype connection events.
             Connected += (sender, args) => IsConnected = true;
-            Disconnected += (sender, args) => IsConnected = false;
+            Disconnected += onDisconnected;
 
             // Create dummy handle source to catch Windows API messages.
             _windowHandleSource = new HwndSource(new HwndSourceParameters());
@@ -61,10 +61,6 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public void Enable()
         {
-            // Register API messages for communicating with Skype.
-            _skypeApiDiscover = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.Discover);
-            _skypeApiAttach = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.Attach);
-
             _skypeWatcher.Start();
         }
 
@@ -101,8 +97,14 @@ namespace SkypeAutoRecorder.Core
         private void sendSkypeCommand(string command)
         {
             var data = new CopyDataStruct { Id = "1", Size = command.Length + 1, Data = command };
-            WinApiWrapper.SendMessage(
-                _skypeWindowHandle, WinApiConstants.WM_COPYDATA, _windowHandleSource.Handle, ref data);
+            try
+            {
+                WinApiWrapper.SendMessage(
+                    _skypeWindowHandle, WinApiConstants.WM_COPYDATA, _windowHandleSource.Handle, ref data);
+            }
+            catch (WinApiException)
+            {
+            }
         }
 
         /// <summary>
@@ -121,7 +123,6 @@ namespace SkypeAutoRecorder.Core
             // Status offline.
             if (message == SkypeMessages.ConnectionStatusOffline)
             {
-                _startConversationHandled = false;
                 invokeDisconnected();
                 return;
             }
@@ -161,6 +162,12 @@ namespace SkypeAutoRecorder.Core
                 _startConversationHandled = false;
                 invokeConversationEnded(new ConversationEventArgs(_currentCaller));
             }
+        }
+
+        private void onDisconnected(object sender, EventArgs eventArgs)
+        {
+            IsConnected = false;
+            _startConversationHandled = false;
         }
 
         /// <summary>
