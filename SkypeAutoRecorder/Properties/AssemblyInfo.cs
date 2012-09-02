@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SkypeAutoRecorder")]
-[assembly: AssemblyCopyright("Copyright © Miroshnichenko Kirill 2012")]
+[assembly: AssemblyCopyright("Copyright © Kirill Miroshnichenko 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
