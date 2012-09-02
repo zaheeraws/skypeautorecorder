@@ -60,11 +60,11 @@ namespace SkypeAutoRecorder
             };
 
             // Add context menu.
-            _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecording())
+            _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecordingMenuItemClick())
                                       { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5, Enabled = false };
             trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
 
-            _cancelRecordingMenuItem = new MenuItem("Cancel recording", (sender, args) => cancelRecording())
+            _cancelRecordingMenuItem = new MenuItem("Cancel recording", (sender, args) => cancelRecordingMenuItemClick())
                                        { Shortcut = Shortcut.CtrlShiftF10, Enabled = false };
             trayIcon.ContextMenu.MenuItems.Add(_cancelRecordingMenuItem);
 
@@ -122,9 +122,9 @@ namespace SkypeAutoRecorder
         private void onHotKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
         {
             if (keyPressedEventArgs.HotKey == _startRecordingHotKey)
-                startRecording();
+                startRecordingMenuItemClick();
             else if (keyPressedEventArgs.HotKey == _cancelRecordingHotKey)
-                cancelRecording();
+                cancelRecordingMenuItemClick();
         }
 
         #endregion
@@ -298,12 +298,12 @@ namespace SkypeAutoRecorder
             }
         }
 
-        private void startRecording()
+        private void startRecordingMenuItemClick()
         {
             throw new NotImplementedException();
         }
 
-        private void cancelRecording()
+        private void cancelRecordingMenuItemClick()
         {
             throw new NotImplementedException();
         }
