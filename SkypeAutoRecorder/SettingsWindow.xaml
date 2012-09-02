@@ -222,7 +222,7 @@
         </StackPanel>
       </TabItem>
     </TabControl>
-    <Grid Grid.Row="2" Margin="3">
+    <Grid Grid.Row="2" Margin="3,10,3,3">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
