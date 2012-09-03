@@ -204,7 +204,7 @@ namespace SkypeAutoRecorder
             _tempInFileName = Settings.GetTempFileName("1");
             _tempOutFileName = Settings.GetTempFileName("2");
 
-            _connector.StartRecord(_tempInFileName, _tempOutFileName);
+            _connector.StartRecording(_tempInFileName, _tempOutFileName);
         }
 
         private void connectorOnDisconnected(object sender, EventArgs eventArgs)
@@ -223,7 +223,7 @@ namespace SkypeAutoRecorder
             if (_recordFileName == null)
                 return;
 
-            _connector.EndRecord();
+            _connector.StopRecording();
 
             // Start thread for processing sound.
             var fileNames = new ProcessingThreadData
@@ -300,12 +300,17 @@ namespace SkypeAutoRecorder
 
         private void startRecordingMenuItemClick()
         {
-            throw new NotImplementedException();
+            if (!_startRecordingMenuItem.Enabled)
+                return;
+
+
         }
 
         private void cancelRecordingMenuItemClick()
         {
-            throw new NotImplementedException();
+            if (!_cancelRecordingMenuItem.Enabled)
+                return;
+
         }
 
         private void openRecordsDefaultFolder()

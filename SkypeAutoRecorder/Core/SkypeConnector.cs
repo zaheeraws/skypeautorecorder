@@ -21,9 +21,11 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public SkypeConnector()
         {
-            // Subscribe to Skype connection events.
+            // Subscribe to own events.
             Connected += (sender, args) => IsConnected = true;
             Disconnected += onDisconnected;
+            RecordingStarted += (sender, args) => IsRecording = true;
+            RecordingStopped += (sender, args) => IsRecording = false;
 
             // Create dummy handle source to catch Windows API messages.
             _windowHandleSource = new HwndSource(new HwndSourceParameters());
@@ -43,6 +45,14 @@ namespace SkypeAutoRecorder.Core
         /// <c>true</c> if <see cref="SkypeConnector"/> is connected; otherwise, <c>false</c>.
         /// </value>
         public bool IsConnected { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether <see cref="SkypeConnector"/> is recording conversation.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if <see cref="SkypeConnector"/> is recording conversation; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsRecording { get; private set; }
 
         /// <summary>
         /// Parses the skype message and returns its parameter.
@@ -69,25 +79,29 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         /// <param name="callInFileName">Name of the file for input channel (microphone).</param>
         /// <param name="callOutFileName">Name of the file for output channel.</param>
-        public void StartRecord(string callInFileName, string callOutFileName)
+        public void StartRecording(string callInFileName, string callOutFileName)
         {
             var recordInCommand = string.Format(SkypeCommands.StartRecordInput, _currentCallNumber, callInFileName);
             var recordOutCommand = string.Format(SkypeCommands.StartRecordOutput, _currentCallNumber, callOutFileName);
 
             sendSkypeCommand(recordInCommand);
             sendSkypeCommand(recordOutCommand);
+
+            invokeRecordingStarted(new ConversationEventArgs(_currentCaller));
         }
 
         /// <summary>
         /// End record of the currently active call.
         /// </summary>
-        public void EndRecord()
+        public void StopRecording()
         {
             var endRecordInCommand = string.Format(SkypeCommands.EndRecordInput, _currentCallNumber);
             var endRecordOutCommand = string.Format(SkypeCommands.EndRecordOutput, _currentCallNumber);
 
             sendSkypeCommand(endRecordInCommand);
             sendSkypeCommand(endRecordOutCommand);
+
+            invokeRecordingStopped(new ConversationEventArgs(_currentCaller));
         }
 
         /// <summary>
