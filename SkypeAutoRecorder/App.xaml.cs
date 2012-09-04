@@ -3,16 +3,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using GlobalHotKey;
 using SkypeAutoRecorder.Configuration;
-using SkypeAutoRecorder.Core;
-using SkypeAutoRecorder.Core.Sound;
 using SkypeAutoRecorder.Helpers;
-using MessageBox = System.Windows.MessageBox;
 
 namespace SkypeAutoRecorder
 {
@@ -24,22 +20,13 @@ namespace SkypeAutoRecorder
         private readonly UniqueInstanceChecker _instanceChecker =
             new UniqueInstanceChecker("SkypeAutoRecorderOneInstanceMutex");
 
-        #region Tray icons
-
         // Icons from the resources for displaying application status.
-
-        private const string DisconnectedIconResource = "SkypeAutoRecorder.Images.DisconnectedTrayIcon.ico";
-        private const string ConnectedIconResource = "SkypeAutoRecorder.Images.ConnectedTrayIcon.ico";
-        private const string RecordingIconResource = "SkypeAutoRecorder.Images.RecordingTrayIcon.ico";
-
-        private readonly Icon _disconnectedIcon =
-            new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(DisconnectedIconResource));
-
-        private readonly Icon _connectedIcon =
-            new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(ConnectedIconResource));
-
-        private readonly Icon _recordingIcon =
-            new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream(RecordingIconResource));
+        private readonly Icon _disconnectedIcon = new Icon(Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("SkypeAutoRecorder.Images.DisconnectedTrayIcon.ico"));
+        private readonly Icon _connectedIcon = new Icon(Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("SkypeAutoRecorder.Images.ConnectedTrayIcon.ico"));
+        private readonly Icon _recordingIcon = new Icon(Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("SkypeAutoRecorder.Images.RecordingTrayIcon.ico"));
 
         private NotifyIcon _trayIcon;
         private MenuItem _startRecordingMenuItem;
@@ -47,13 +34,34 @@ namespace SkypeAutoRecorder
         private MenuItem _browseDefaultMenuItem;
         private MenuItem _browseLastRecordMenuItem;
 
-        /// <summary>
-        /// Creates tray icon and context menu for it.
-        /// </summary>
-        /// <returns>Created <see cref="NotifyIcon"/> instance.</returns>
-        private NotifyIcon buildTrayIcon()
+        private HotKeyManager _hotKeyManager;
+        private HotKey _startRecordingHotKey;
+        private HotKey _cancelRecordingHotKey;
+
+        private string _lastRecordFileName;
+
+        private SettingsWindow _settingsWindow;
+        private AboutWindow _aboutWindow;
+
+        private void appStartup(object sender, StartupEventArgs e)
         {
-            var trayIcon = new NotifyIcon
+            // Only one instance of SkypeAutoRecorder is allowed.
+            if (_instanceChecker.IsAlreadyRunning())
+            {
+                Shutdown();
+                return;
+            }
+
+            buildTrayIcon();
+            setTrayIconWaitingSkype();
+
+            createHotKeyManager();
+            initSkypeConnector();
+        }
+
+        private void buildTrayIcon()
+        {
+            _trayIcon = new NotifyIcon
             {
                 ContextMenu = new ContextMenu(),
                 Visible = true
@@ -61,30 +69,42 @@ namespace SkypeAutoRecorder
 
             // Add context menu.
             _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecordingMenuItemClick())
-                                      { DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5, Enabled = false };
-            trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
+                                      {
+                                          DefaultItem = true, Shortcut = Shortcut.CtrlShiftF5, Enabled = false
+                                      };
+            _trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
 
             _cancelRecordingMenuItem = new MenuItem("Cancel recording", (sender, args) => cancelRecordingMenuItemClick())
-                                       { Shortcut = Shortcut.CtrlShiftF10, Enabled = false };
-            trayIcon.ContextMenu.MenuItems.Add(_cancelRecordingMenuItem);
+                                       {
+                                           Shortcut = Shortcut.CtrlShiftF10, Enabled = false
+                                       };
+            _trayIcon.ContextMenu.MenuItems.Add(_cancelRecordingMenuItem);
 
-            trayIcon.ContextMenu.MenuItems.Add("-");
+            _trayIcon.ContextMenu.MenuItems.Add("-");
 
             _browseDefaultMenuItem = new MenuItem("Browse records", (sender, args) => openRecordsDefaultFolder());
             updateBrowseDefaultMenuItem();
-            trayIcon.ContextMenu.MenuItems.Add(_browseDefaultMenuItem);
+            _trayIcon.ContextMenu.MenuItems.Add(_browseDefaultMenuItem);
 
             _browseLastRecordMenuItem =
                 new MenuItem("Browse last record", (sender, args) => openLastRecordFolder()) { Enabled = false };
-            trayIcon.ContextMenu.MenuItems.Add(_browseLastRecordMenuItem);
+            _trayIcon.ContextMenu.MenuItems.Add(_browseLastRecordMenuItem);
 
-            trayIcon.ContextMenu.MenuItems.Add("-");
-            trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
-            trayIcon.ContextMenu.MenuItems.Add("About", onAboutClick);
-            trayIcon.ContextMenu.MenuItems.Add("-");
-            trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
+            _trayIcon.ContextMenu.MenuItems.Add("-");
+            _trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
+            _trayIcon.ContextMenu.MenuItems.Add("About", openAboutWindow);
+            _trayIcon.ContextMenu.MenuItems.Add("-");
+            _trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
 
-            return trayIcon;
+            _trayIcon.MouseDoubleClick += (o, args) => openSettingsWindow();
+        }
+
+        private void createHotKeyManager()
+        {
+            _hotKeyManager = new HotKeyManager();
+            _hotKeyManager.KeyPressed += onHotKeyPressed;
+            _startRecordingHotKey = _hotKeyManager.Register(Key.F5, ModifierKeys.Control | ModifierKeys.Shift);
+            _cancelRecordingHotKey = _hotKeyManager.Register(Key.F10, ModifierKeys.Control | ModifierKeys.Shift);
         }
 
         private void setTrayIconWaitingSkype()
@@ -127,183 +147,12 @@ namespace SkypeAutoRecorder
                 cancelRecordingMenuItemClick();
         }
 
-        #endregion
-
-        private SkypeConnector _connector;
-        private HotKeyManager _hotKeyManager;
-        private HotKey _startRecordingHotKey;
-        private HotKey _cancelRecordingHotKey;
-
-        private void appStartup(object sender, StartupEventArgs e)
-        {
-            // Only one instance of SkypeAutoRecorder is allowed.
-            if (_instanceChecker.IsAlreadyRunning())
-            {
-                Shutdown();
-                return;
-            }
-
-            // Initialize tray icon.
-            _trayIcon = buildTrayIcon();
-            setTrayIconWaitingSkype();
-            _trayIcon.MouseDoubleClick += (o, args) => openSettingsWindow();
-            
-            // Initialize hot keys manager.
-            _hotKeyManager = new HotKeyManager();
-            _hotKeyManager.KeyPressed += onHotKeyPressed;
-            _startRecordingHotKey = _hotKeyManager.Register(Key.F5, ModifierKeys.Control | ModifierKeys.Shift);
-            _cancelRecordingHotKey = _hotKeyManager.Register(Key.F10, ModifierKeys.Control | ModifierKeys.Shift);
-
-            // Initialize Skype connector.
-            _connector = new SkypeConnector();
-            _connector.Connected += (o, args) => setTrayIconWaitingCalls();
-            _connector.Disconnected += connectorOnDisconnected;
-            _connector.ConversationStarted += onConversationStarted;
-            _connector.ConversationEnded += onConversationEnded;
-            _connector.Enable();
-        }
-
-        private readonly object _locker = new object();
-
-        /// <summary>
-        /// Final resulting file name after recording and all sound processing steps.
-        /// </summary>
-        private string _recordFileName;
-
-        /// <summary>
-        /// File name for the incoming channel recorded by Skype.
-        /// </summary>
-        private string _tempInFileName;
-
-        /// <summary>
-        /// File name for the outgoing channel recorded by Skype.
-        /// </summary>
-        private string _tempOutFileName;
-
-        private string _callerName;
-
-        private DateTime _startRecordDateTime;
-
-        private string _lastRecordFileName;
-
-        private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
-        {
-            _callerName = conversationEventArgs.CallerName;
-            _startRecordDateTime = DateTime.Now;
-            _recordFileName = Settings.Current.GetRawFileName(_callerName);
-
-            if (_recordFileName == null)
-            {
-                return;
-            }
-
-            // Update tray icon information.
-            setTrayIconRecording();
-                
-            // Get temp files.
-            _tempInFileName = Settings.GetTempFileName("1");
-            _tempOutFileName = Settings.GetTempFileName("2");
-
-            _connector.StartRecording(_tempInFileName, _tempOutFileName);
-        }
-
-        private void connectorOnDisconnected(object sender, EventArgs eventArgs)
-        {
-            convertRecordedFile();
-            setTrayIconWaitingSkype();
-        }
-
-        private void onConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
-        {
-            convertRecordedFile();
-        }
-
-        private void convertRecordedFile()
-        {
-            if (_recordFileName == null)
-                return;
-
-            _connector.StopRecording();
-
-            // Start thread for processing sound.
-            var fileNames = new ProcessingThreadData
-                            {
-                                TempInFileName = _tempInFileName,
-                                TempOutFileName = _tempOutFileName,
-                                RecordRawFileName = _recordFileName,
-                                CallerName = _callerName,
-                                StartRecordDateTime = _startRecordDateTime
-                            };
-
-            // Need to use Thread not from ThreadPool, because we want to run sound processing
-            // even after application closes.
-            new Thread(soundProcessing).Start(fileNames);
-
-            setTrayIconWaitingCalls();
-        }
-
-        private void soundProcessing(object dataObject)
-        {
-            var data = (ProcessingThreadData)dataObject;
-
-            // Wait while files are in use.
-            while (FilesHelper.FileIsInUse(data.TempInFileName) || FilesHelper.FileIsInUse(data.TempOutFileName))
-            {
-            }
-
-            // Join channels.
-            var joinedFileName = Settings.GetTempFileName();
-
-            if (SoundProcessor.JoinChannels(
-                data.TempInFileName, data.TempOutFileName, joinedFileName, Settings.Current.SeparateSoundChannels))
-            {
-                File.Delete(data.TempInFileName);
-                File.Delete(data.TempOutFileName);
-
-                // Encode merged file to MP3.
-                var duration = DateTime.Now - data.StartRecordDateTime;
-                var recordFileName = Settings.RenderFileName(
-                    data.RecordRawFileName, data.CallerName, data.StartRecordDateTime, duration);
-                if (!DirectoriesHelper.CreateDirectory(recordFileName) ||
-                    !SoundProcessor.EncodeMp3(joinedFileName, recordFileName, Settings.Current.VolumeScale,
-                        Settings.Current.HighQualitySound, Settings.Current.SoundSampleFrequency,
-                        Settings.Current.SoundBitrate))
-                {
-                    // Encode to settings folder with default file name if unable encode to the desired file name.
-                    recordFileName = Path.Combine(Settings.SettingsFolder, Settings.RenderFileName(
-                        Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime, duration));
-
-                    if (!SoundProcessor.EncodeMp3(joinedFileName, recordFileName, Settings.Current.VolumeScale,
-                            Settings.Current.HighQualitySound, Settings.Current.SoundSampleFrequency,
-                            Settings.Current.SoundBitrate))
-                    {
-                        // If encoding fails anyway then return WAV file to user.
-                        recordFileName = Path.ChangeExtension(recordFileName, "wav");
-                        File.Copy(joinedFileName, recordFileName, true);
-                    }
-
-                    // Report about error and ask about opening folder with resulting file.
-                    var openFolder = MessageBox.Show(
-                        string.Format("Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?",
-                            data.RecordRawFileName, recordFileName),
-                        "Saving error", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
-
-                    // Open folder.
-                    if (openFolder)
-                        Process.Start(Settings.SettingsFolder);
-                }
-
-                updateLastRecordFileName(recordFileName);
-                File.Delete(joinedFileName);
-            }
-        }
-
         private void startRecordingMenuItemClick()
         {
             if (!_startRecordingMenuItem.Enabled)
                 return;
 
-
+            throw new NotImplementedException();
         }
 
         private void cancelRecordingMenuItemClick()
@@ -311,6 +160,7 @@ namespace SkypeAutoRecorder
             if (!_cancelRecordingMenuItem.Enabled)
                 return;
 
+            throw new NotImplementedException();
         }
 
         private void openRecordsDefaultFolder()
@@ -336,24 +186,6 @@ namespace SkypeAutoRecorder
                 Process.Start("explorer.exe", args);
             }
         }
-
-        private void onApplicationExit(object sender, ExitEventArgs e)
-        {
-            convertRecordedFile();
-
-            if (_trayIcon != null)
-                _trayIcon.Dispose();
-            if (_connector != null)
-                _connector.Dispose();
-
-            _instanceChecker.Release();
-        }
-
-        #region Windows
-
-        private SettingsWindow _settingsWindow;
-
-        private AboutWindow _aboutWindow;
 
         /// <summary>
         /// Opens the settings window.
@@ -384,7 +216,7 @@ namespace SkypeAutoRecorder
             }
         }
 
-        private void onAboutClick(object sender, EventArgs eventArgs)
+        private void openAboutWindow(object sender, EventArgs eventArgs)
         {
             if (_aboutWindow != null && _aboutWindow.IsLoaded)
                 return;
@@ -393,6 +225,16 @@ namespace SkypeAutoRecorder
             _aboutWindow.ShowDialog();
         }
 
-        #endregion
+        private void onApplicationExit(object sender, ExitEventArgs e)
+        {
+            convertRecordedFile();
+
+            if (_trayIcon != null)
+                _trayIcon.Dispose();
+            if (_connector != null)
+                _connector.Dispose();
+
+            _instanceChecker.Release();
+        }
     }
 }
