@@ -53,8 +53,6 @@ namespace SkypeAutoRecorder
             }
 
             buildTrayIcon();
-            setTrayIconWaitingSkype();
-
             createHotKeyManager();
             initSkypeConnector();
         }
@@ -66,6 +64,8 @@ namespace SkypeAutoRecorder
                 ContextMenu = new ContextMenu(),
                 Visible = true
             };
+
+            setTrayIconWaitingSkype();
 
             // Add context menu.
             _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecordingMenuItemClick())
@@ -145,22 +145,6 @@ namespace SkypeAutoRecorder
                 startRecordingMenuItemClick();
             else if (keyPressedEventArgs.HotKey == _cancelRecordingHotKey)
                 cancelRecordingMenuItemClick();
-        }
-
-        private void startRecordingMenuItemClick()
-        {
-            if (!_startRecordingMenuItem.Enabled)
-                return;
-
-            throw new NotImplementedException();
-        }
-
-        private void cancelRecordingMenuItemClick()
-        {
-            if (!_cancelRecordingMenuItem.Enabled)
-                return;
-
-            throw new NotImplementedException();
         }
 
         private void openRecordsDefaultFolder()

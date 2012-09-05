@@ -31,14 +31,27 @@ namespace SkypeAutoRecorder
 
         private void initSkypeConnector()
         {
-            _connector.Connected += (o, args) => setTrayIconWaitingCalls();
+            _connector.Connected += connectorOnConnected;
             _connector.Disconnected += connectorOnDisconnected;
-            _connector.ConversationStarted += onConversationStarted;
-            _connector.ConversationEnded += onConversationEnded;
+            _connector.ConversationStarted += connectorOnConversationStarted;
+            _connector.ConversationEnded += connectorOnConversationEnded;
+            _connector.RecordingStarted += connectorOnRecordingStarted;
+            _connector.RecordingStopped += connectorOnRecordingStopped;
             _connector.Enable();
         }
 
-        private void onConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
+        private void connectorOnConnected(object sender, EventArgs eventArgs)
+        {
+            setTrayIconWaitingCalls();
+        }
+
+        private void connectorOnDisconnected(object sender, EventArgs eventArgs)
+        {
+            convertRecordedFile();
+            setTrayIconWaitingSkype();
+        }
+
+        private void connectorOnConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
         {
             _callerName = conversationEventArgs.CallerName;
             _startRecordDateTime = DateTime.Now;
@@ -59,15 +72,19 @@ namespace SkypeAutoRecorder
             _connector.StartRecording(_tempInFileName, _tempOutFileName);
         }
 
-        private void connectorOnDisconnected(object sender, EventArgs eventArgs)
+        private void connectorOnConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
         {
             convertRecordedFile();
-            setTrayIconWaitingSkype();
         }
 
-        private void onConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
+        private void connectorOnRecordingStarted(object sender, ConversationEventArgs conversationEventArgs)
         {
-            convertRecordedFile();
+            throw new NotImplementedException();
+        }
+
+        private void connectorOnRecordingStopped(object sender, ConversationEventArgs conversationEventArgs)
+        {
+            throw new NotImplementedException();
         }
 
         private void convertRecordedFile()
@@ -148,6 +165,22 @@ namespace SkypeAutoRecorder
                 updateLastRecordFileName(recordFileName);
                 File.Delete(joinedFileName);
             }
+        }
+
+        private void startRecordingMenuItemClick()
+        {
+            if (!_startRecordingMenuItem.Enabled)
+                return;
+
+            throw new NotImplementedException();
+        }
+
+        private void cancelRecordingMenuItemClick()
+        {
+            if (!_cancelRecordingMenuItem.Enabled)
+                return;
+
+            throw new NotImplementedException();
         }
     }
 }
