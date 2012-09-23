@@ -212,9 +212,9 @@ namespace SkypeAutoRecorder
 
         private void onHotKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
         {
-            if (keyPressedEventArgs.HotKey == _startRecordingHotKey)
+            if (keyPressedEventArgs.HotKey.Equals(_startRecordingHotKey))
                 startRecording();
-            else if (keyPressedEventArgs.HotKey == _cancelRecordingHotKey)
+            else if (keyPressedEventArgs.HotKey.Equals(_cancelRecordingHotKey))
                 cancelRecording();
         }
 
@@ -279,8 +279,7 @@ namespace SkypeAutoRecorder
 
         private void onApplicationExit(object sender, ExitEventArgs e)
         {
-            if (_connector.IsRecording)
-                _connector.CancelRecording();
+            _connector.CancelRecording();
 
             if (_trayIcon != null)
                 _trayIcon.Dispose();

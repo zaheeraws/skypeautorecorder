@@ -108,6 +108,9 @@ namespace SkypeAutoRecorder.Core
         /// <param name="callOutFileName">Name of the file for output channel.</param>
         public void StartRecording(string callInFileName, string callOutFileName)
         {
+            if (IsRecording)
+                return;
+
             CallInFileName = callInFileName;
             CallOutFileName = callOutFileName;
 
@@ -125,6 +128,9 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public void StopRecording()
         {
+            if (!IsRecording)
+                return;
+
             sendStopRecordingCommands();
             invokeRecordingStopped(new RecordingEventArgs(CurrentCaller, CallInFileName, CallOutFileName));
         }
@@ -134,9 +140,12 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public void CancelRecording()
         {
+            if (!IsRecording)
+                return;
+
             sendStopRecordingCommands();
 
-            // Delete temp files. TODO: TEST THIS.
+            // Delete temp files.
             new Thread(state =>
                        {
                            while (FilesHelper.FileIsInUse(CallInFileName) ||
