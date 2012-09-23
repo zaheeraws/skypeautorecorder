@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -74,7 +75,7 @@ namespace SkypeAutoRecorder
             // Add context menu.
             _startRecordingMenuItem = new MenuItem("Start recording", (sender, args) => startRecording())
                                       {
-                                          Shortcut = Shortcut.CtrlShiftF5, Enabled = false
+                                          Shortcut = Shortcut.CtrlShiftF5, Enabled = false, DefaultItem = true
                                       };
             _trayIcon.ContextMenu.MenuItems.Add(_startRecordingMenuItem);
 
@@ -111,25 +112,62 @@ namespace SkypeAutoRecorder
             _cancelRecordingHotKey = _hotKeyManager.Register(Key.F10, ModifierKeys.Control | ModifierKeys.Shift);
         }
 
+        private StringBuilder LOG = new StringBuilder();
+
         private void updateGuiConnected(object sender, EventArgs eventArgs)
         {
-            setTrayIconWaitingCalls();
+            setTrayIconReady();
+            updateStartCancelRecordMenuItems(false, false);
+            LOG.AppendLine("CONNECTED: false, false");
         }
 
-        private void updateGuiDisconnected(object sender, EventArgs eventArgs)
+        private void updateGuiDisconnected()
         {
             setTrayIconWaitingSkype();
+            updateStartCancelRecordMenuItems(false, false);
+            LOG.AppendLine("DISCONNECTED: false, false");
         }
 
-        private void updateGuiRecordingStarted(object sender, ConversationEventArgs conversationEventArgs)
+        private void updateGuiConversationStarted()
         {
-            _trayIcon.Icon = _recordingIcon;
-            _trayIcon.Text = Settings.ApplicationName + ": Recording";
+            updateStartCancelRecordMenuItems(true, false);
+            LOG.AppendLine("CONV STARTED: true, false");
         }
 
-        private void updateGuiRecordingStopped(object sender, ConversationEventArgs conversationEventArgs)
+        private void updateGuiConversationEnded(object sender, ConversationEventArgs eventArgs)
         {
-            setTrayIconWaitingCalls();
+            updateStartCancelRecordMenuItems(false, false);
+            LOG.AppendLine("CONV ENDED: false, false");
+        }
+
+        private void updateGuiRecordingStarted()
+        {
+            setTrayIconRecording();
+            updateStartCancelRecordMenuItems(false, true);
+            LOG.AppendLine("REC STARTED: false, true");
+        }
+
+        private void updateGuiRecordingStopped()
+        {
+            setTrayIconReady();
+            updateStartCancelRecordMenuItems(true, false);
+            LOG.AppendLine("REC STOPPED: false, false");
+        }
+
+        private void updateGuiRecordingCanceled(object sender, RecordingEventArgs eventArgs)
+        {
+            setTrayIconReady();
+            updateStartCancelRecordMenuItems(true, false);
+            LOG.AppendLine("REC CANCELED: true, false");
+        }
+
+        private void updateStartCancelRecordMenuItems(bool enableStart, bool enableCancel)
+        {
+            _startRecordingMenuItem.Enabled = enableStart;
+            _cancelRecordingMenuItem.Enabled = enableCancel;
+
+            _startRecordingMenuItem.DefaultItem = enableStart || !enableCancel;
+            _cancelRecordingMenuItem.DefaultItem = enableCancel;
         }
 
         private void setTrayIconWaitingSkype()
@@ -138,10 +176,16 @@ namespace SkypeAutoRecorder
             _trayIcon.Text = Settings.ApplicationName + ": Waiting for Skype";
         }
 
-        private void setTrayIconWaitingCalls()
+        private void setTrayIconReady()
         {
             _trayIcon.Icon = _connectedIcon;
-            _trayIcon.Text = Settings.ApplicationName + ": Waiting for calls";
+            _trayIcon.Text = Settings.ApplicationName + ": Ready";
+        }
+
+        private void setTrayIconRecording()
+        {
+            _trayIcon.Icon = _recordingIcon;
+            _trayIcon.Text = Settings.ApplicationName + ": Recording";
         }
 
         private void trayIconOnMouseDoubleClick(object sender, MouseEventArgs mouseEventArgs)
@@ -235,7 +279,8 @@ namespace SkypeAutoRecorder
 
         private void onApplicationExit(object sender, ExitEventArgs e)
         {
-            convertRecordedFile();
+            if (_connector.IsRecording)
+                _connector.CancelRecording();
 
             if (_trayIcon != null)
                 _trayIcon.Dispose();

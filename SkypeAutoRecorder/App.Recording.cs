@@ -16,78 +16,67 @@ namespace SkypeAutoRecorder
         private const string RecordSaveError = "Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?";
         
         private readonly SkypeConnector _connector = new SkypeConnector();
-        
-        private readonly object _locker = new object();
 
-        private string _tempInFileName;
-        private string _tempOutFileName;
+        private readonly object _locker = new object();
 
         /// <summary>
         /// Final resulting file name after recording and all sound processing steps.
         /// </summary>
         private string _recordFileName;
 
-        private string _callerName;
         private DateTime _startRecordDateTime;
 
         private void initSkypeConnector()
         {
             _connector.Connected += updateGuiConnected;
             _connector.Disconnected += connectorOnDisconnected;
-            _connector.Disconnected += updateGuiDisconnected;
             _connector.ConversationStarted += connectorOnConversationStarted;
-            _connector.ConversationEnded += connectorOnConversationEnded;
+            _connector.ConversationEnded += updateGuiConversationEnded;
             _connector.RecordingStarted += connectorOnRecordingStarted;
-            _connector.RecordingStarted += updateGuiRecordingStarted;
             _connector.RecordingStopped += connectorOnRecordingStopped;
-            _connector.RecordingStopped += updateGuiRecordingStopped;
+            _connector.RecordingCanceled += updateGuiRecordingCanceled;
+
             _connector.Enable();
         }
 
         private void connectorOnDisconnected(object sender, EventArgs eventArgs)
         {
-            convertRecordedFile();
+            updateGuiDisconnected();
+            convertRecordedFile(_connector.CurrentCaller, _connector.CallInFileName, _connector.CallOutFileName);
         }
 
-        private void connectorOnConversationStarted(object sender, ConversationEventArgs conversationEventArgs)
+        private void connectorOnConversationStarted(object sender, ConversationEventArgs eventArgs)
         {
-            _callerName = conversationEventArgs.CallerName;
-            _recordFileName = Settings.Current.GetRawFileName(_callerName);
+            updateGuiConversationStarted();
+
+            _recordFileName = Settings.Current.GetRawFileName(eventArgs.CallerName);
             if (_recordFileName == null)
                 return;
 
-            // Get temp files.
-            _tempInFileName = Settings.GetTempFileName("In");
-            _tempOutFileName = Settings.GetTempFileName("Out");
-
-            _connector.StartRecording(_tempInFileName, _tempOutFileName);
+            _connector.StartRecording(Settings.GetTempFileName("In"), Settings.GetTempFileName("Out"));
         }
 
-        private void connectorOnConversationEnded(object sender, ConversationEventArgs conversationEventArgs)
+        private void connectorOnRecordingStarted(object sender, RecordingEventArgs eventArgs)
         {
-            if (_recordFileName != null)
-                _connector.StopRecording();
-        }
-
-        private void connectorOnRecordingStarted(object sender, ConversationEventArgs conversationEventArgs)
-        {
+            updateGuiRecordingStarted();
             _startRecordDateTime = DateTime.Now;
         }
 
-        private void connectorOnRecordingStopped(object sender, ConversationEventArgs conversationEventArgs)
+        private void connectorOnRecordingStopped(object sender, RecordingEventArgs eventArgs)
         {
-            convertRecordedFile();
+            updateGuiRecordingStopped();
+            convertRecordedFile(eventArgs.CallerName, eventArgs.CallInFileName, eventArgs.CallOutFileName);
         }
 
-        private void convertRecordedFile()
+        private void convertRecordedFile(string callerName, string inFileName, string outFileName)
         {
             // Prepare data for sound processing in a separate thread.
             var fileNames = new ProcessingThreadData
                             {
-                                TempInFileName = _tempInFileName,
-                                TempOutFileName = _tempOutFileName,
+                                TempInFileName = inFileName,
+                                TempOutFileName = outFileName,
                                 RecordRawFileName = _recordFileName,
-                                CallerName = _callerName,
+                                CallerName = callerName,
                                 StartRecordDateTime = _startRecordDateTime
                             };
 
@@ -165,7 +154,7 @@ namespace SkypeAutoRecorder
             if (!_cancelRecordingMenuItem.Enabled)
                 return;
 
-            throw new NotImplementedException();
+            _connector.CancelRecording();
         }
     }
 }

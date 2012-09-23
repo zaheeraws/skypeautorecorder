@@ -23,9 +23,9 @@ namespace SkypeAutoRecorder.Core
         /// Delegate of the recording events handler.
         /// </summary>
         /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="SkypeAutoRecorder.Core.ConversationEventArgs"/> instance
+        /// <param name="e">The <see cref="SkypeAutoRecorder.Core.RecordingEventArgs"/> instance
         /// containing the event data.</param>
-        public delegate void RecordingEventHandler(object sender, ConversationEventArgs e);
+        public delegate void RecordingEventHandler(object sender, RecordingEventArgs e);
 
         /// <summary>
         /// Occurs when application is successfuly connected to the Skype.
@@ -50,12 +50,17 @@ namespace SkypeAutoRecorder.Core
         /// <summary>
         /// Occurs when recording starts.
         /// </summary>
-        public event ConversationEventHandler RecordingStarted;
+        public event RecordingEventHandler RecordingStarted;
 
         /// <summary>
         /// Occurs when recording stops.
         /// </summary>
-        public event ConversationEventHandler RecordingStopped;
+        public event RecordingEventHandler RecordingStopped;
+
+        /// <summary>
+        /// Occurs when recording is canceled.
+        /// </summary>
+        public event RecordingEventHandler RecordingCanceled;
 
         private void invokeConnected()
         {
@@ -93,7 +98,7 @@ namespace SkypeAutoRecorder.Core
             }
         }
 
-        private void invokeRecordingStarted(ConversationEventArgs e)
+        private void invokeRecordingStarted(RecordingEventArgs e)
         {
             var handler = RecordingStarted;
             if (handler != null)
@@ -102,9 +107,18 @@ namespace SkypeAutoRecorder.Core
             }
         }
 
-        private void invokeRecordingStopped(ConversationEventArgs e)
+        private void invokeRecordingStopped(RecordingEventArgs e)
         {
             var handler = RecordingStopped;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        private void invokeRecordingCanceled(RecordingEventArgs e)
+        {
+            var handler = RecordingCanceled;
             if (handler != null)
             {
                 handler(this, e);

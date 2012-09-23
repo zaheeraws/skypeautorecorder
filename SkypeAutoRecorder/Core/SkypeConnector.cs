@@ -1,9 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
-using System.Timers;
+using System.Threading;
 using System.Windows.Interop;
 using SkypeAutoRecorder.Core.SkypeApi;
 using SkypeAutoRecorder.Core.WinApi;
+using SkypeAutoRecorder.Helpers;
+using Timer = System.Timers.Timer;
 
 namespace SkypeAutoRecorder.Core
 {
@@ -13,9 +16,8 @@ namespace SkypeAutoRecorder.Core
     internal partial class SkypeConnector : IDisposable
     {
         private int _currentCallNumber;
-        private string _currentCaller;
         private bool _startConversationHandled;
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="SkypeConnector"/> class.
         /// </summary>
@@ -25,7 +27,8 @@ namespace SkypeAutoRecorder.Core
             Connected += (sender, args) => IsConnected = true;
             Disconnected += onDisconnected;
             RecordingStarted += (sender, args) => IsRecording = true;
-            RecordingStopped += (sender, args) => IsRecording = false;
+            RecordingStopped += onRecordingStopOrCancel;
+            RecordingCanceled += onRecordingStopOrCancel;
 
             // Create dummy handle source to catch Windows API messages.
             _windowHandleSource = new HwndSource(new HwndSourceParameters());
@@ -55,6 +58,30 @@ namespace SkypeAutoRecorder.Core
         public bool IsRecording { get; private set; }
 
         /// <summary>
+        /// Gets the name of the current caller.
+        /// </summary>
+        /// <value>
+        /// The name of the current caller.
+        /// </value>
+        public string CurrentCaller { get; private set; }
+
+        /// <summary>
+        /// Gets the file name of input sound channel.
+        /// </summary>
+        /// <value>
+        /// The file name of input sound channel.
+        /// </value>
+        public string CallInFileName { get; private set; }
+
+        /// <summary>
+        /// Gets the file name of output sound channel.
+        /// </summary>
+        /// <value>
+        /// The file name of output sound channel.
+        /// </value>
+        public string CallOutFileName { get; private set; }
+
+        /// <summary>
         /// Parses the skype message and returns its parameter.
         /// </summary>
         /// <param name="message">The message.</param>
@@ -75,34 +102,61 @@ namespace SkypeAutoRecorder.Core
         }
 
         /// <summary>
-        /// Start record of the currently active call to the files.
+        /// Starts record of the currently active call to the files.
         /// </summary>
         /// <param name="callInFileName">Name of the file for input channel (microphone).</param>
         /// <param name="callOutFileName">Name of the file for output channel.</param>
         public void StartRecording(string callInFileName, string callOutFileName)
         {
+            CallInFileName = callInFileName;
+            CallOutFileName = callOutFileName;
+
             var recordInCommand = string.Format(SkypeCommands.StartRecordInput, _currentCallNumber, callInFileName);
             var recordOutCommand = string.Format(SkypeCommands.StartRecordOutput, _currentCallNumber, callOutFileName);
 
             sendSkypeCommand(recordInCommand);
             sendSkypeCommand(recordOutCommand);
 
-            invokeRecordingStarted(new ConversationEventArgs(_currentCaller));
+            invokeRecordingStarted(new RecordingEventArgs(CurrentCaller, CallInFileName, CallOutFileName));
         }
 
         /// <summary>
-        /// End record of the currently active call.
+        /// Ends record of the currently active call.
         /// </summary>
         public void StopRecording()
+        {
+            sendStopRecordingCommands();
+            invokeRecordingStopped(new RecordingEventArgs(CurrentCaller, CallInFileName, CallOutFileName));
+        }
+
+        /// <summary>
+        /// Cancels record of the currently active call.
+        /// </summary>
+        public void CancelRecording()
+        {
+            sendStopRecordingCommands();
+
+            // Delete temp files. TODO: TEST THIS.
+            new Thread(state =>
+                       {
+                           while (FilesHelper.FileIsInUse(CallInFileName) ||
+                                  FilesHelper.FileIsInUse(CallOutFileName)) {}
+                           File.Delete(CallInFileName);
+                           File.Delete(CallOutFileName);
+                       }).Start();
+
+            invokeRecordingCanceled(new RecordingEventArgs(CurrentCaller, null, null));
+        }
+
+        private void sendStopRecordingCommands()
         {
             var endRecordInCommand = string.Format(SkypeCommands.EndRecordInput, _currentCallNumber);
             var endRecordOutCommand = string.Format(SkypeCommands.EndRecordOutput, _currentCallNumber);
 
             sendSkypeCommand(endRecordInCommand);
             sendSkypeCommand(endRecordOutCommand);
-
-            invokeRecordingStopped(new ConversationEventArgs(_currentCaller));
         }
+
 
         /// <summary>
         /// Sends the Skype command using Windows API.
@@ -163,8 +217,8 @@ namespace SkypeAutoRecorder.Core
             var caller = parseSkypeMessage(message, string.Format("CALL {0} PARTNER_HANDLE (.+)", _currentCallNumber));
             if (!string.IsNullOrEmpty(caller))
             {
-                _currentCaller = caller;
-                invokeConversationStarted(new ConversationEventArgs(_currentCaller));
+                CurrentCaller = caller;
+                invokeConversationStarted(new ConversationEventArgs(CurrentCaller));
                 return;
             }
 
@@ -174,8 +228,17 @@ namespace SkypeAutoRecorder.Core
             if ((statusFinish || statusMissed) && _startConversationHandled)
             {
                 _startConversationHandled = false;
-                invokeConversationEnded(new ConversationEventArgs(_currentCaller));
+                
+                if (IsRecording)
+                    StopRecording();
+
+                invokeConversationEnded(new ConversationEventArgs(CurrentCaller));
             }
+        }
+
+        private void onRecordingStopOrCancel(object sender, RecordingEventArgs recordingEventArgs)
+        {
+            IsRecording = false;
         }
 
         private void onDisconnected(object sender, EventArgs eventArgs)

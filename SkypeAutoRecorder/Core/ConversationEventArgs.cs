@@ -3,7 +3,7 @@ using System;
 namespace SkypeAutoRecorder.Core
 {
     /// <summary>
-    /// Conversation event arguments which provides caller name.
+    /// Conversation event arguments which provide caller name.
     /// </summary>
     internal class ConversationEventArgs : EventArgs
     {
@@ -17,11 +17,11 @@ namespace SkypeAutoRecorder.Core
         }
 
         /// <summary>
-        /// Gets or sets the name of the caller.
+        /// Gets the name of the caller.
         /// </summary>
         /// <value>
         /// The name of the caller.
         /// </value>
-        public string CallerName { get; set; }
+        public string CallerName { get; private set; }
     }
 }
