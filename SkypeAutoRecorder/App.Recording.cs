@@ -50,10 +50,13 @@ namespace SkypeAutoRecorder
             updateGuiConversationStarted();
 
             _recordFileName = Settings.Current.GetRawFileName(eventArgs.CallerName);
-            if (_recordFileName == null)
-                return;
+            startRecording();
+        }
 
-            _connector.StartRecording(Settings.GetTempFileName("In"), Settings.GetTempFileName("Out"));
+        private void startRecording()
+        {
+            if (!string.IsNullOrEmpty(_recordFileName))
+                _connector.StartRecording(Settings.GetTempFileName("In"), Settings.GetTempFileName("Out"));
         }
 
         private void connectorOnRecordingStarted(object sender, RecordingEventArgs eventArgs)
@@ -139,22 +142,6 @@ namespace SkypeAutoRecorder
             return SoundProcessor.EncodeMp3(joinedFileName, recordFileName, Settings.Current.VolumeScale,
                                             Settings.Current.HighQualitySound, Settings.Current.SoundSampleFrequency,
                                             Settings.Current.SoundBitrate);
-        }
-
-        private void startRecording()
-        {
-            if (!_startRecordingMenuItem.Enabled)
-                return;
-
-            throw new NotImplementedException();
-        }
-
-        private void cancelRecording()
-        {
-            if (!_cancelRecordingMenuItem.Enabled)
-                return;
-
-            _connector.CancelRecording();
         }
     }
 }

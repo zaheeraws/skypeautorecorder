@@ -16,7 +16,6 @@ namespace SkypeAutoRecorder.Core
     internal partial class SkypeConnector : IDisposable
     {
         private int _currentCallNumber;
-        private bool _startConversationHandled;
         
         /// <summary>
         /// Initializes a new instance of the <see cref="SkypeConnector"/> class.
@@ -56,6 +55,14 @@ namespace SkypeAutoRecorder.Core
         /// <c>true</c> if <see cref="SkypeConnector"/> is recording conversation; otherwise, <c>false</c>.
         /// </value>
         public bool IsRecording { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether conversation is active.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if conversation is active; otherwise, <c>false</c>.
+        /// </value>
+        public bool ConversationIsActive { get; private set; }
 
         /// <summary>
         /// Gets the name of the current caller.
@@ -108,7 +115,7 @@ namespace SkypeAutoRecorder.Core
         /// <param name="callOutFileName">Name of the file for output channel.</param>
         public void StartRecording(string callInFileName, string callOutFileName)
         {
-            if (IsRecording)
+            if (IsRecording && ConversationIsActive)
                 return;
 
             CallInFileName = callInFileName;
@@ -191,7 +198,7 @@ namespace SkypeAutoRecorder.Core
         private void processSkypeMessage(string message)
         {
             // Status online.
-            if (message == SkypeMessages.ConnectionStatusOnline && !_startConversationHandled)
+            if (message == SkypeMessages.ConnectionStatusOnline && !ConversationIsActive)
             {
                 invokeConnected();
                 return;
@@ -208,9 +215,9 @@ namespace SkypeAutoRecorder.Core
             var numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS INPROGRESS");
             var numberFromDuration = parseSkypeMessage(message, "CALL (\\d+) DURATION (\\d+)");
             if ((!string.IsNullOrEmpty(numberFromStatus) || !string.IsNullOrEmpty(numberFromDuration)) &&
-                !_startConversationHandled)
+                !ConversationIsActive)
             {
-                _startConversationHandled = true;
+                ConversationIsActive = true;
 
                 var newCallNumber = int.Parse(numberFromStatus ?? numberFromDuration);
                 if (newCallNumber == _currentCallNumber)
@@ -234,9 +241,9 @@ namespace SkypeAutoRecorder.Core
             // Conversation ended.
             var statusFinish = Regex.IsMatch(message, string.Format("CALL {0} STATUS FINISHED", _currentCallNumber));
             var statusMissed = Regex.IsMatch(message, string.Format("CALL {0} STATUS MISSED", _currentCallNumber));
-            if ((statusFinish || statusMissed) && _startConversationHandled)
+            if ((statusFinish || statusMissed) && ConversationIsActive)
             {
-                _startConversationHandled = false;
+                ConversationIsActive = false;
                 
                 if (IsRecording)
                     StopRecording();
@@ -253,7 +260,7 @@ namespace SkypeAutoRecorder.Core
         private void onDisconnected(object sender, EventArgs eventArgs)
         {
             IsConnected = false;
-            _startConversationHandled = false;
+            ConversationIsActive = false;
         }
 
         /// <summary>
