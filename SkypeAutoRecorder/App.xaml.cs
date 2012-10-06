@@ -155,9 +155,6 @@ namespace SkypeAutoRecorder
         {
             _startRecordingMenuItem.Enabled = enableStart;
             _cancelRecordingMenuItem.Enabled = enableCancel;
-
-            _startRecordingMenuItem.DefaultItem = enableStart || !enableCancel;
-            _cancelRecordingMenuItem.DefaultItem = enableCancel;
         }
 
         private void setTrayIconWaitingSkype()
