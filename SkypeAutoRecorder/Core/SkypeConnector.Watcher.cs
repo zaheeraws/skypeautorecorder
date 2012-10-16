@@ -1,4 +1,5 @@
-﻿using System.Timers;
+﻿using System;
+using System.Timers;
 using SkypeAutoRecorder.Core.SkypeApi;
 using SkypeAutoRecorder.Core.WinApi;
 
@@ -19,21 +20,39 @@ namespace SkypeAutoRecorder.Core
         /// <summary>
         /// Periodicity of checking that Skype is still working (in ms).
         /// </summary>
-        private const double WatchInterval = 500;
+        private const double WatchInterval = 1000;
+
+        /// <summary>
+        /// Last time when PONG was recieved from Skype.
+        /// </summary>
+        private DateTime _lastPong;
 
         private readonly Timer _skypeWatcher;
 
         private void skypeWatcherHandler(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             // Check that Skype window that provides API is active now.
-            var skypeActive = WinApiWrapper.WindowExists(SkypeMainWindowClass) &&
-                              !WinApiWrapper.WindowExists(SkypeLoginWindowClass);
+            var skypeIsActive = WinApiWrapper.WindowExists(SkypeMainWindowClass) &&
+                                !WinApiWrapper.WindowExists(SkypeLoginWindowClass);
 
-            if (!IsConnected && skypeActive)
+            // Ping-pong with Skype to check if we still are subscribed to its messages.
+            if (IsConnected && skypeIsActive)
+            {
+                sendSkypeCommand(SkypeCommands.Ping);
+                
+                // Check when last PONG was recieved.
+                var diff = DateTime.Now - _lastPong;
+                if (diff.Milliseconds > WatchInterval * 3)
+                {
+                    invokeDisconnected();
+                }
+            }
+
+            if (!IsConnected && skypeIsActive)
             {
                 enableSkypeMessaging();
             }
-            else if (IsConnected && !skypeActive)
+            else if (IsConnected && !skypeIsActive)
             {
                 invokeDisconnected();
             }

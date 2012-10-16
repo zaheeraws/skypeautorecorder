@@ -23,7 +23,7 @@ namespace SkypeAutoRecorder.Core
         public SkypeConnector()
         {
             // Subscribe to own events.
-            Connected += (sender, args) => IsConnected = true;
+            Connected += onConnected;
             Disconnected += onDisconnected;
             RecordingStarted += (sender, args) => IsRecording = true;
             RecordingStopped += onRecordingStopOrCancel;
@@ -211,6 +211,11 @@ namespace SkypeAutoRecorder.Core
                 return;
             }
 
+            if (message == SkypeMessages.Pong)
+            {
+                _lastPong = DateTime.Now;
+            }
+
             // Conversation started.
             var numberFromStatus = parseSkypeMessage(message, "CALL (\\d+) STATUS INPROGRESS");
             var numberFromDuration = parseSkypeMessage(message, "CALL (\\d+) DURATION (\\d+)");
@@ -255,6 +260,12 @@ namespace SkypeAutoRecorder.Core
         private void onRecordingStopOrCancel(object sender, RecordingEventArgs recordingEventArgs)
         {
             IsRecording = false;
+        }
+
+        private void onConnected(object sender, EventArgs eventArgs)
+        {
+            IsConnected = true;
+            _lastPong = DateTime.Now;
         }
 
         private void onDisconnected(object sender, EventArgs eventArgs)
