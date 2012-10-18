@@ -222,15 +222,22 @@ namespace SkypeAutoRecorder
 
         private void openRecordsDefaultFolder()
         {
+            var path = Settings.Current.DefaultRawFileName;
+
             // Clear default records path from all placeholders. Need to remove chars starting from the first
             // placeholder and then fix it by removing all chars after last backslash.
-            var path = Settings.Current.DefaultRawFileName;
-            path = path.Remove(path.IndexOf('{'));
-            path = path.Remove(path.LastIndexOf('\\'));
+            var i = path.IndexOf('{');
+            if (i >= 0)
+                path = path.Remove(i);
+
+            i = path.LastIndexOf('\\');
+            if (i >= 0)
+                path = path.Remove(i);
 
             // Try to open resulting path without placeholders.
             // If it's incorrect or doesn't exist, Explorer opens some default folder automatically.
-            Process.Start("explorer.exe", path);
+            if (!string.IsNullOrEmpty(path))
+                Process.Start("explorer.exe", path);
         }
 
         private void openLastRecordFolder()
