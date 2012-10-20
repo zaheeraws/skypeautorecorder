@@ -29,7 +29,7 @@ namespace SkypeAutoRecorder
         private void initSkypeConnector()
         {
             _connector.Connected += updateGuiConnected;
-            _connector.Disconnected += connectorOnDisconnected;
+            _connector.Disconnected += updateGuiDisconnected;
             _connector.ConversationStarted += connectorOnConversationStarted;
             _connector.ConversationEnded += updateGuiConversationEnded;
             _connector.RecordingStarted += connectorOnRecordingStarted;
@@ -37,12 +37,6 @@ namespace SkypeAutoRecorder
             _connector.RecordingCanceled += updateGuiRecordingCanceled;
 
             _connector.Enable();
-        }
-
-        private void connectorOnDisconnected(object sender, EventArgs eventArgs)
-        {
-            updateGuiDisconnected();
-            convertRecordedFile(_connector.CurrentCaller, _connector.CallInFileName, _connector.CallOutFileName);
         }
 
         private void connectorOnConversationStarted(object sender, ConversationEventArgs eventArgs)

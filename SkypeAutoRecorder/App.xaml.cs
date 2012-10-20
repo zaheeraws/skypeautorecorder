@@ -117,7 +117,7 @@ namespace SkypeAutoRecorder
             updateStartCancelRecordMenuItems(false, false);
         }
 
-        private void updateGuiDisconnected()
+        private void updateGuiDisconnected(object sender, EventArgs eventArgs)
         {
             setTrayIconWaitingSkype();
             updateStartCancelRecordMenuItems(false, false);

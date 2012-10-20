@@ -40,11 +40,12 @@ namespace SkypeAutoRecorder.Core
             {
                 sendSkypeCommand(SkypeCommands.Ping);
                 
-                // Check when last PONG was recieved.
+                // Check when last PONG was recieved. Let 3 lost PONGs are OK.
                 var diff = DateTime.Now - _lastPong;
                 if (diff.Milliseconds > WatchInterval * 3)
                 {
-                    invokeDisconnected();
+                    disconnect();
+                    return;
                 }
             }
 
@@ -54,7 +55,7 @@ namespace SkypeAutoRecorder.Core
             }
             else if (IsConnected && !skypeIsActive)
             {
-                invokeDisconnected();
+                disconnect();
             }
         }
 

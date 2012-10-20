@@ -22,13 +22,6 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public SkypeConnector()
         {
-            // Subscribe to own events.
-            Connected += onConnected;
-            Disconnected += onDisconnected;
-            RecordingStarted += (sender, args) => IsRecording = true;
-            RecordingStopped += onRecordingStopOrCancel;
-            RecordingCanceled += onRecordingStopOrCancel;
-
             // Create dummy handle source to catch Windows API messages.
             _windowHandleSource = new HwndSource(new HwndSourceParameters());
 
@@ -115,7 +108,7 @@ namespace SkypeAutoRecorder.Core
         /// <param name="callOutFileName">Name of the file for output channel.</param>
         public void StartRecording(string callInFileName, string callOutFileName)
         {
-            if (IsRecording && ConversationIsActive)
+            if ((IsRecording && ConversationIsActive) || !ConversationIsActive)
                 return;
 
             CallInFileName = callInFileName;
@@ -126,6 +119,8 @@ namespace SkypeAutoRecorder.Core
 
             sendSkypeCommand(recordInCommand);
             sendSkypeCommand(recordOutCommand);
+
+            IsRecording = true;
 
             invokeRecordingStarted(new RecordingEventArgs(CurrentCaller, CallInFileName, CallOutFileName));
         }
@@ -171,6 +166,8 @@ namespace SkypeAutoRecorder.Core
 
             sendSkypeCommand(endRecordInCommand);
             sendSkypeCommand(endRecordOutCommand);
+
+            IsRecording = false;
         }
 
 
@@ -200,20 +197,21 @@ namespace SkypeAutoRecorder.Core
             // Status online.
             if (message == SkypeMessages.ConnectionStatusOnline && !ConversationIsActive)
             {
-                invokeConnected();
+                connect();
                 return;
             }
 
             // Status offline.
             if (message == SkypeMessages.ConnectionStatusOffline)
             {
-                invokeDisconnected();
+                disconnect();
                 return;
             }
 
             if (message == SkypeMessages.Pong)
             {
                 _lastPong = DateTime.Now;
+                return;
             }
 
             // Conversation started.
@@ -222,8 +220,6 @@ namespace SkypeAutoRecorder.Core
             if ((!string.IsNullOrEmpty(numberFromStatus) || !string.IsNullOrEmpty(numberFromDuration)) &&
                 !ConversationIsActive)
             {
-                ConversationIsActive = true;
-
                 var newCallNumber = int.Parse(numberFromStatus ?? numberFromDuration);
                 if (newCallNumber == _currentCallNumber)
                     return;
@@ -239,7 +235,7 @@ namespace SkypeAutoRecorder.Core
             if (!string.IsNullOrEmpty(caller))
             {
                 CurrentCaller = caller;
-                invokeConversationStarted(new ConversationEventArgs(CurrentCaller));
+                startConversation();
                 return;
             }
 
@@ -248,30 +244,39 @@ namespace SkypeAutoRecorder.Core
             var statusMissed = Regex.IsMatch(message, string.Format("CALL {0} STATUS MISSED", _currentCallNumber));
             if ((statusFinish || statusMissed) && ConversationIsActive)
             {
-                ConversationIsActive = false;
-                
-                if (IsRecording)
-                    StopRecording();
-
-                invokeConversationEnded(new ConversationEventArgs(CurrentCaller));
+                endConversation();
             }
         }
 
-        private void onRecordingStopOrCancel(object sender, RecordingEventArgs recordingEventArgs)
+        private void startConversation()
         {
-            IsRecording = false;
+            ConversationIsActive = true;
+            invokeConversationStarted(new ConversationEventArgs(CurrentCaller));
         }
 
-        private void onConnected(object sender, EventArgs eventArgs)
+        private void endConversation()
+        {
+            StopRecording();
+            ConversationIsActive = false;
+            invokeConversationEnded(new ConversationEventArgs(CurrentCaller));
+        }
+
+        private void connect()
         {
             IsConnected = true;
+            ConversationIsActive = false;
+            IsRecording = false;
+            
             _lastPong = DateTime.Now;
+
+            invokeConnected();
         }
 
-        private void onDisconnected(object sender, EventArgs eventArgs)
+        private void disconnect()
         {
+            endConversation();
             IsConnected = false;
-            ConversationIsActive = false;
+            invokeDisconnected();
         }
 
         /// <summary>
@@ -279,6 +284,8 @@ namespace SkypeAutoRecorder.Core
         /// </summary>
         public void Dispose()
         {
+            _skypeWatcher.Stop();
+
             // Remove hook of Windows API messages.
             _windowHandleSource.RemoveHook(apiMessagesHandler);
         }
