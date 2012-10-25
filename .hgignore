@@ -1,6 +1,0 @@
-syntax: regexp
-/obj/*
-/bin/*
-_ReSharper.*/
-syntax: glob
-*.suo
