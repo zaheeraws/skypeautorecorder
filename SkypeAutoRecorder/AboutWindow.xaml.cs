@@ -19,7 +19,7 @@ namespace SkypeAutoRecorder
 
         private void hyperlinkRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+            Process.Start(e.Uri.AbsoluteUri);
             e.Handled = true;
         }
     }

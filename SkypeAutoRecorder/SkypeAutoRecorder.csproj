@@ -161,22 +161,22 @@
     <Resource Include="Images\Add.png" />
     <Resource Include="Images\Remove.png" />
     <Resource Include="Images\SelectFolder.png" />
-    <Content Include="Libs\Lame\lame.exe">
+    <Content Include="Tools\Lame\lame.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libs\Lame\lame_enc.dll">
+    <Content Include="Tools\Lame\lame_enc.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libs\Sox\libgomp-1.dll">
+    <Content Include="Tools\Sox\libgomp-1.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libs\Sox\pthreadgc2.dll">
+    <Content Include="Tools\Sox\pthreadgc2.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libs\Sox\sox.exe">
+    <Content Include="Tools\Sox\sox.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libs\Sox\zlib1.dll">
+    <Content Include="Tools\Sox\zlib1.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -5,7 +5,9 @@
         xmlns:cmds="clr-namespace:SkypeAutoRecorder"
         Title="Settings" WindowStartupLocation="CenterScreen"
         Height="480" Width="600" Icon="/SkypeAutoRecorder;component/Images/MainIcon.ico" ResizeMode="CanResize"
-        MinHeight="445" MinWidth="500" SnapsToDevicePixels="True">
+        MinHeight="445" MinWidth="500" SnapsToDevicePixels="True"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d">
   <Window.Resources>
     <Style x:Key="FileNameTextBox" TargetType="TextBox">
       <Style.Triggers>
@@ -49,7 +51,8 @@
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <TextBlock Margin="0,0,0,2" Text="Filters:" />
-          <ListView Grid.Row="1" Validation.Error="filtersListError" ItemsSource="{Binding Filters, Mode=TwoWay}">
+          <ListView Grid.Row="1" Validation.Error="filtersListError" ItemsSource="{Binding Filters, Mode=TwoWay}"
+                    d:DataContext="{d:DesignInstance rules:Settings}">
             <ListView.ItemContainerStyle>
               <Style TargetType="ListViewItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -60,14 +63,14 @@
                 <GridViewColumn Width="205" Header="Contacts">
                   <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                      <TextBox Text="{Binding Contacts}" />
+                      <TextBox Text="{Binding Contacts}" d:DataContext="{d:DesignInstance rules:Filter}" />
                     </DataTemplate>
                   </GridViewColumn.CellTemplate>
                 </GridViewColumn>
                 <GridViewColumn Width="270" Header="File name">
                   <GridViewColumn.CellTemplate>
                     <DataTemplate>
-                      <TextBox Style="{DynamicResource FileNameTextBox}">
+                      <TextBox Style="{DynamicResource FileNameTextBox}" d:DataContext="{d:DesignInstance rules:Filter}">
                         <TextBox.Text>
                           <Binding Path="RawFileName" NotifyOnValidationError="True" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>

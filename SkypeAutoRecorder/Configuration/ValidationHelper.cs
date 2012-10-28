@@ -17,16 +17,8 @@ namespace SkypeAutoRecorder.Configuration
         /// <returns><c>true</c> if provided path is valid; otherwise, <c>false</c>.</returns>
         public static bool ValidatePath(string path)
         {
-            if (path == null)
-            {
+            if (string.IsNullOrEmpty(path))
                 return false;
-            }
-
-            // Empty path is correct because in this case application adds default file name.
-            if (path == string.Empty)
-            {
-                return true;
-            }
 
             try
             {

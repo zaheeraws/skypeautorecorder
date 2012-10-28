@@ -96,6 +96,8 @@ namespace SkypeAutoRecorder
 
             _trayIcon.ContextMenu.MenuItems.Add("-");
             _trayIcon.ContextMenu.MenuItems.Add("Settings", (sender, args) => openSettingsWindow());
+            _trayIcon.ContextMenu.MenuItems.Add("-");
+            _trayIcon.ContextMenu.MenuItems.Add("Help", openHelp);
             _trayIcon.ContextMenu.MenuItems.Add("About", openAboutWindow);
             _trayIcon.ContextMenu.MenuItems.Add("-");
             _trayIcon.ContextMenu.MenuItems.Add("Close", (sender, e) => Shutdown());
@@ -284,6 +286,11 @@ namespace SkypeAutoRecorder
 
             _aboutWindow = new AboutWindow();
             _aboutWindow.ShowDialog();
+        }
+
+        private void openHelp(object sender, EventArgs eventArgs)
+        {
+            Process.Start("http://skypeautorecorder.codeplex.com/documentation");
         }
 
         private void onApplicationExit(object sender, ExitEventArgs e)

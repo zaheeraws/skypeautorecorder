@@ -120,10 +120,7 @@ namespace SkypeAutoRecorder.Configuration
         [XmlIgnore]
         public List<string> SoundSampleFrequencies
         {
-            get
-            {
-                return AvailableSoundSampleFrequencies;
-            }
+            get { return AvailableSoundSampleFrequencies; }
         }
 
         /// <summary>
@@ -132,10 +129,7 @@ namespace SkypeAutoRecorder.Configuration
         [XmlIgnore]
         public List<string> SoundBitrates
         {
-            get
-            {
-                return AvailableSoundBitrates;
-            }
+            get { return AvailableSoundBitrates; }
         }
 
         /// <summary>
@@ -154,9 +148,7 @@ namespace SkypeAutoRecorder.Configuration
             {
                 // Check if conversation with this contact can be auto recorded.
                 if (contactsContain(ExcludedContacts, contact))
-                {
                     return null;
-                }
 
                 // Try to use default file name.
                 return RecordUnfiltered ? DefaultRawFileName : null;

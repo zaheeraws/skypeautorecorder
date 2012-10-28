@@ -19,8 +19,8 @@ namespace SkypeAutoRecorder.Core.Sound
             var currentLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
             
             // Get the path for Sox and Lame external applications used for sound processing.
-            SoxPath = Path.Combine(currentLocation, "Libs\\Sox\\sox.exe");
-            LamePath = Path.Combine(currentLocation, "Libs\\Lame\\lame.exe");
+            SoxPath = Path.Combine(currentLocation, "Tools\\Sox\\sox.exe");
+            LamePath = Path.Combine(currentLocation, "Tools\\Lame\\lame.exe");
         }
 
         /// <summary>
