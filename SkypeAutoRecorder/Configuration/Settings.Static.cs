@@ -72,6 +72,8 @@ namespace SkypeAutoRecorder.Configuration
             else
             {
                 Current = new Settings();
+                Save();
+                IsFirstStart = true;
             }
         }
 
@@ -82,6 +84,14 @@ namespace SkypeAutoRecorder.Configuration
         /// The current settings.
         /// </value>
         public static Settings Current { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether recorder was started for the first time.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if recorder was started for the first time; otherwise, <c>false</c>.
+        /// </value>
+        public static bool IsFirstStart { get; set; }
 
         /// <summary>
         /// Gets the name of the temp wav file.

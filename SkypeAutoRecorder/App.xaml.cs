@@ -59,6 +59,14 @@ namespace SkypeAutoRecorder
             buildTrayIcon();
             createHotKeyManager();
             initSkypeConnector();
+
+            if (Settings.IsFirstStart)
+            {
+                System.Windows.MessageBox.Show(
+                    "Thank you for choosing SkypeAutoRecorder!\r\nPlease, make sure that your interlocutor is aware of recording!",
+                    "SkypeAutoRecorder",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void buildTrayIcon()
@@ -219,7 +227,15 @@ namespace SkypeAutoRecorder
         private void cancelRecordingMenuItemClick()
         {
             if (_cancelRecordingMenuItem.Enabled)
-                _connector.CancelRecording();
+            {
+                var result = System.Windows.MessageBox.Show(
+                    "The recording will be canceled and already recorded conversation lost. Do you really want to proceed?",
+                    "SkypeAutoRecorder",
+                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+                if (result == MessageBoxResult.Yes)
+                    _connector.CancelRecording();
+            }
         }
 
         private void openRecordsDefaultFolder()
