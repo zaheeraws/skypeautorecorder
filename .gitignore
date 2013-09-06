@@ -29,12 +29,16 @@ obj/
 [Bb]in
 [Dd]ebug*/
 [Rr]elease*/
-Ankh.NoLoad
+tmp/
 
-#Tooling
+#Tools
 _ReSharper*/
 *.resharper
 [Tt]est[Rr]esult*
+*.ncrunchsolution
+*.DotSettings.user
+_NCrunch*/
+Ankh.NoLoad
 
 #Project files
 [Bb]uild/
