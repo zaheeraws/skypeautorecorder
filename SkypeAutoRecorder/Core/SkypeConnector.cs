@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -177,6 +178,10 @@ namespace SkypeAutoRecorder.Core
         /// <param name="command">The command.</param>
         private void sendSkypeCommand(string command)
         {
+#if DEBUG
+            Trace.WriteLine("SKYPE < " + command);
+#endif
+
             var data = new CopyDataStruct { Id = "1", Size = command.Length + 1, Data = command };
             try
             {
@@ -194,6 +199,10 @@ namespace SkypeAutoRecorder.Core
         /// <param name="message">The Skype message.</param>
         private void processSkypeMessage(string message)
         {
+#if DEBUG
+            Trace.WriteLine("SKYPE > " + message);
+#endif
+
             // Status online.
             if (message == SkypeMessages.ConnectionStatusOnline && !ConversationIsActive)
             {
@@ -231,7 +240,7 @@ namespace SkypeAutoRecorder.Core
             }
 
             // Message with caller name.
-            var caller = parseSkypeMessage(message, string.Format("CALL {0} PARTNER_HANDLE (.+)", _currentCallNumber));
+            var caller = parseSkypeMessage(message, $"CALL {_currentCallNumber} PARTNER_HANDLE (.+)");
             if (!string.IsNullOrEmpty(caller))
             {
                 CurrentCaller = caller;
@@ -240,8 +249,8 @@ namespace SkypeAutoRecorder.Core
             }
 
             // Conversation ended.
-            var statusFinish = Regex.IsMatch(message, string.Format("CALL {0} STATUS FINISHED", _currentCallNumber));
-            var statusMissed = Regex.IsMatch(message, string.Format("CALL {0} STATUS MISSED", _currentCallNumber));
+            var statusFinish = Regex.IsMatch(message, $"CALL {_currentCallNumber} STATUS FINISHED");
+            var statusMissed = Regex.IsMatch(message, $"CALL {_currentCallNumber} STATUS MISSED");
             if ((statusFinish || statusMissed) && ConversationIsActive)
             {
                 endConversation();

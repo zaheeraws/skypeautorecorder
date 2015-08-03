@@ -18,8 +18,8 @@ namespace SkypeAutoRecorder
     /// </summary>
     public partial class SettingsWindow : INotifyPropertyChanged
     {
-        private const string AutostartRegistryKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-        private const string AutostartValueName = Settings.ApplicationName;
+        private const string AUTOSTART_REGISTRY_KEY = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+        private const string AUTOSTART_VALUE_NAME = Settings.ApplicationName;
 
         public static RoutedCommand OkCommand = new RoutedCommand();
 
@@ -40,8 +40,8 @@ namespace SkypeAutoRecorder
             mainGrid.DataContext = NewSettings;
 
             // Check if application is present in Run registry section and its file name is valid.
-            var currentValue =
-                (string)Registry.CurrentUser.OpenSubKey(AutostartRegistryKey).GetValue(AutostartValueName, null);
+            // ReSharper disable once PossibleNullReferenceException
+            var currentValue = (string)Registry.CurrentUser.OpenSubKey(AUTOSTART_REGISTRY_KEY).GetValue(AUTOSTART_VALUE_NAME, null);
             Autostart = !string.IsNullOrEmpty(currentValue) && currentValue == Assembly.GetEntryAssembly().Location;
         }
 
@@ -66,10 +66,7 @@ namespace SkypeAutoRecorder
         public void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            handler?.Invoke(this, e);
         }
 
         private void okCommandExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -78,13 +75,15 @@ namespace SkypeAutoRecorder
             if (Autostart)
             {
                 // Enable autostart - add registry record.
-                Registry.CurrentUser.OpenSubKey(AutostartRegistryKey, true).SetValue(
-                    AutostartValueName, Assembly.GetEntryAssembly().Location);
+                // ReSharper disable once PossibleNullReferenceException
+                Registry.CurrentUser.OpenSubKey(AUTOSTART_REGISTRY_KEY, true).SetValue(
+                    AUTOSTART_VALUE_NAME, Assembly.GetEntryAssembly().Location);
             }
             else
             {
                 // Disable autostart - remove registry record.
-                Registry.CurrentUser.OpenSubKey(AutostartRegistryKey, true).DeleteValue(AutostartValueName, false);
+                // ReSharper disable once PossibleNullReferenceException
+                Registry.CurrentUser.OpenSubKey(AUTOSTART_REGISTRY_KEY, true).DeleteValue(AUTOSTART_VALUE_NAME, false);
             }
 
             DialogResult = true;
