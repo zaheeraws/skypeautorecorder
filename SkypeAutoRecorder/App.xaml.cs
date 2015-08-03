@@ -63,7 +63,7 @@ namespace SkypeAutoRecorder
             if (Settings.IsFirstStart)
             {
                 System.Windows.MessageBox.Show(
-                    "Thank you for choosing SkypeAutoRecorder!\r\nPlease, make sure that your interlocutor is aware of recording!",
+                    "Thank you for choosing SkypeAutoRecorder!\r\nPlease, make sure that all call members are aware of recording!",
                     "SkypeAutoRecorder",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
