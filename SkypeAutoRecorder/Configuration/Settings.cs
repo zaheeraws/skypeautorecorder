@@ -32,7 +32,7 @@ namespace SkypeAutoRecorder.Configuration
             // Set default values for settings.
             Filters = new ObservableCollection<Filter>();
             RecordUnfiltered = true;
-            DefaultRawFileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), @"Skype Records\" + DefaultFileName);
+            DefaultRawFileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), @"Skype Records\" + DEFAULT_FILE_NAME);
             ExcludedContacts = "echo123";
             VolumeScale = 1;
             SoundSampleFrequency = "32";
@@ -159,13 +159,13 @@ namespace SkypeAutoRecorder.Configuration
         /// Gets the sound sample frequencies.
         /// </summary>
         [XmlIgnore]
-        public List<string> SoundSampleFrequencies => AvailableSoundSampleFrequencies;
+        public List<string> SoundSampleFrequencies => _availableSoundSampleFrequencies;
 
         /// <summary>
         /// Gets the sound bitrates.
         /// </summary>
         [XmlIgnore]
-        public List<string> SoundBitrates => AvailableSoundBitrates;
+        public List<string> SoundBitrates => _availableSoundBitrates;
 
         /// <summary>
         /// Gets the raw name of the file for saving recorded conversation depends on current settings.

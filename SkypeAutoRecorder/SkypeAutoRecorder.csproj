@@ -90,6 +90,7 @@
     <Compile Include="Configuration\ValidationHelper.cs" />
     <Compile Include="Core\RecordingEventArgs.cs" />
     <Compile Include="Core\Sound\SoundProcessor.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Framework\BaseViewModel.cs" />
     <Compile Include="Helpers\DirectoriesHelper.cs" />
     <Compile Include="Helpers\FilesHelper.cs" />

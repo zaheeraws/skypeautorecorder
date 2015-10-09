@@ -19,7 +19,7 @@ namespace SkypeAutoRecorder
     public partial class SettingsWindow : INotifyPropertyChanged
     {
         private const string AUTOSTART_REGISTRY_KEY = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-        private const string AUTOSTART_VALUE_NAME = Settings.ApplicationName;
+        private const string AUTOSTART_VALUE_NAME = Settings.APPLICATION_NAME;
 
         public static RoutedCommand OkCommand = new RoutedCommand();
 
@@ -37,7 +37,7 @@ namespace SkypeAutoRecorder
             InitializeComponent();
 
             NewSettings = currentSettings ?? new Settings();
-            mainGrid.DataContext = NewSettings;
+            MainGrid.DataContext = NewSettings;
 
             // Check if application is present in Run registry section and its file name is valid.
             // ReSharper disable once PossibleNullReferenceException
@@ -133,7 +133,7 @@ namespace SkypeAutoRecorder
         {
             NewSettings = new Settings();
             Autostart = false;
-            mainGrid.DataContext = NewSettings;
+            MainGrid.DataContext = NewSettings;
         }
 
         private void filtersListError(object sender, ValidationErrorEventArgs e)

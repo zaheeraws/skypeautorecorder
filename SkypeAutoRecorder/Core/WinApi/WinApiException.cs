@@ -7,8 +7,6 @@ namespace SkypeAutoRecorder.Core.WinApi
     /// </summary>
     internal class WinApiException : Exception
     {
-        private readonly string _function;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="WinApiException"/> class.
         /// </summary>
@@ -17,18 +15,12 @@ namespace SkypeAutoRecorder.Core.WinApi
         public WinApiException(string winApiFunction, string message)
             : base(message)
         {
-            _function = winApiFunction;
+            WinApiFunction = winApiFunction;
         }
 
         /// <summary>
         /// Gets the Windows API function name that failed to execute.
         /// </summary>
-        public string WinApiFunction
-        {
-            get
-            {
-                return _function;
-            }
-        }
+        public string WinApiFunction { get; }
     }
 }

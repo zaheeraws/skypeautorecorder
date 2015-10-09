@@ -73,10 +73,7 @@ namespace SkypeAutoRecorder.Configuration
 
         private void onPropertyChanged(PropertyChangedEventArgs e)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, e);
-            }
+            PropertyChanged?.Invoke(this, e);
         }
     }
 }

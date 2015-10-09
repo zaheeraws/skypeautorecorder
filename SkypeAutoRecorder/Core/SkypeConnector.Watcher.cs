@@ -10,17 +10,17 @@ namespace SkypeAutoRecorder.Core
         /// <summary>
         /// Class name of the Skype window that actually allows attaching and send event messages to applications.
         /// </summary>
-        private const string SkypeMainWindowClass = "tSkMainForm";
+        private const string SKYPE_MAIN_WINDOW_CLASS = "tSkMainForm";
         
         /// <summary>
         /// Login window of the Skype that doesn't provide API.
         /// </summary>
-        private const string SkypeLoginWindowClass = "TLoginForm";
+        private const string SKYPE_LOGIN_WINDOW_CLASS = "TLoginForm";
 
         /// <summary>
         /// Periodicity of checking that Skype is still working (in ms).
         /// </summary>
-        private const double WatchInterval = 1000;
+        private const double WATCH_INTERVAL = 1000;
 
         /// <summary>
         /// Last time when PONG was recieved from Skype.
@@ -32,17 +32,17 @@ namespace SkypeAutoRecorder.Core
         private void skypeWatcherHandler(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             // Check that Skype window that provides API is active now.
-            var skypeIsActive = WinApiWrapper.WindowExists(SkypeMainWindowClass) &&
-                                !WinApiWrapper.WindowExists(SkypeLoginWindowClass);
+            var skypeIsActive = WinApiWrapper.WindowExists(SKYPE_MAIN_WINDOW_CLASS) &&
+                                !WinApiWrapper.WindowExists(SKYPE_LOGIN_WINDOW_CLASS);
 
             // Ping-pong with Skype to check if we still are subscribed to its messages.
             if (IsConnected && skypeIsActive)
             {
-                sendSkypeCommand(SkypeCommands.Ping);
+                sendSkypeCommand(SkypeCommands.PING);
                 
                 // Check when last PONG was recieved. Let 3 lost PONGs are OK.
                 var diff = DateTime.Now - _lastPong;
-                if (diff.Milliseconds > WatchInterval * 3)
+                if (diff.Milliseconds > WATCH_INTERVAL * 3)
                 {
                     disconnect();
                     return;
@@ -62,11 +62,11 @@ namespace SkypeAutoRecorder.Core
         private void enableSkypeMessaging()
         {
             // Register API messages for communicating with Skype.
-            _skypeApiDiscover = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.Discover);
-            _skypeApiAttach = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.Attach);
+            _skypeApiDiscover = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.DISCOVER);
+            _skypeApiAttach = WinApiWrapper.RegisterApiMessage(SkypeControlApiMessages.ATTACH);
 
             // Register Skype messages handler if Skype is active.
-            WinApiWrapper.SendMessage(BroadcastHandle, _skypeApiDiscover, _windowHandleSource.Handle);
+            WinApiWrapper.SendMessage(_broadcastHandle, _skypeApiDiscover, _windowHandleSource.Handle);
         }
     }
 }

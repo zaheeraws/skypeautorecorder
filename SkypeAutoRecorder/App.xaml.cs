@@ -170,19 +170,19 @@ namespace SkypeAutoRecorder
         private void setTrayIconWaitingSkype()
         {
             _trayIcon.Icon = _disconnectedIcon;
-            _trayIcon.Text = Settings.ApplicationName + ": Waiting for Skype";
+            _trayIcon.Text = Settings.APPLICATION_NAME + ": Waiting for Skype";
         }
 
         private void setTrayIconReady()
         {
             _trayIcon.Icon = _connectedIcon;
-            _trayIcon.Text = Settings.ApplicationName + ": Ready";
+            _trayIcon.Text = Settings.APPLICATION_NAME + ": Ready";
         }
 
         private void setTrayIconRecording()
         {
             _trayIcon.Icon = _recordingIcon;
-            _trayIcon.Text = Settings.ApplicationName + ": Recording";
+            _trayIcon.Text = Settings.APPLICATION_NAME + ": Recording";
         }
 
         private void trayIconOnMouseDoubleClick(object sender, MouseEventArgs mouseEventArgs)
@@ -263,7 +263,7 @@ namespace SkypeAutoRecorder
             lock (_locker)
             {
                 var args = File.Exists(_lastRecordFileName)
-                               ? string.Format("/select,\"{0}\"", _lastRecordFileName)
+                               ? $"/select,\"{_lastRecordFileName}\""
                                : "\"" + Path.GetDirectoryName(_lastRecordFileName) + "\"";
                 Process.Start("explorer.exe", args);
             }
@@ -313,10 +313,8 @@ namespace SkypeAutoRecorder
         {
             _connector.CancelRecording();
 
-            if (_trayIcon != null)
-                _trayIcon.Dispose();
-            if (_connector != null)
-                _connector.Dispose();
+            _trayIcon?.Dispose();
+            _connector?.Dispose();
 
             _instanceChecker.Release();
         }

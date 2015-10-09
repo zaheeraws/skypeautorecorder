@@ -8,7 +8,7 @@ namespace SkypeAutoRecorder.Core
 {
     internal partial class SkypeConnector
     {
-        private static readonly IntPtr BroadcastHandle = new IntPtr(-1);
+        private static readonly IntPtr _broadcastHandle = new IntPtr(-1);
 
         /// <summary>
         /// Dummy window handle source for catching Skype event messages using Windows API.

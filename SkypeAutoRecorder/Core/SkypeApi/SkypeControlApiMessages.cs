@@ -5,7 +5,7 @@
     /// </summary>
     internal static class SkypeControlApiMessages
     {
-        public const string Discover = "SkypeControlAPIDiscover";
-        public const string Attach = "SkypeControlAPIAttach";
+        public const string DISCOVER = "SkypeControlAPIDiscover";
+        public const string ATTACH =   "SkypeControlAPIAttach";
     }
 }

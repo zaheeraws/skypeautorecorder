@@ -13,7 +13,7 @@ namespace SkypeAutoRecorder
 {
     public partial class App
     {
-        private const string RecordSaveError = "Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?";
+        private const string RECORD_SAVE_ERROR = "Saving recorded file as \"{0}\" has failed. File was saved as \"{1}\" instead. Do you want to open folder with file?";
         
         private readonly SkypeConnector _connector = new SkypeConnector();
 
@@ -104,7 +104,7 @@ namespace SkypeAutoRecorder
             {
                 // Encode to settings folder with default file name if unable encode to the desired file name.
                 recordFileName = Path.Combine(Settings.SettingsFolder, Settings.RenderFileName(
-                    Settings.DefaultFileName, data.CallerName, data.StartRecordDateTime, duration));
+                    Settings.DEFAULT_FILE_NAME, data.CallerName, data.StartRecordDateTime, duration));
 
                 if (!encodeMp3(joinedFileName, recordFileName))
                 {
@@ -114,7 +114,7 @@ namespace SkypeAutoRecorder
                 }
 
                 // Report about error and ask about opening folder with resulting file.
-                if (MessageBox.Show(string.Format(RecordSaveError, data.RecordRawFileName, recordFileName),
+                if (MessageBox.Show(string.Format(RECORD_SAVE_ERROR, data.RecordRawFileName, recordFileName),
                         "Saving error", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes)
                     Process.Start(Settings.SettingsFolder);
             }

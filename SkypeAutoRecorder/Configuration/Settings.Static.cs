@@ -3,36 +3,37 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using SkypeAutoRecorder.Extensions;
 
 namespace SkypeAutoRecorder.Configuration
 {
     public partial class Settings
     {
-        private const string DateTimePlaceholder = "{date-time}";
-        private const string ContactPlaceholder = "{contact}";
-        private const string DurationPlaceholder = "{duration}";
-        private const string DateTimeFormat = "yyyy-MM-dd HH.mm.ss";
-        private const string DurationFormat = @"hh\.mm\.ss";
+        private const string DATE_TIME_PLACEHOLDER = "{date-time}";
+        private const string CONTACT_PLACEHOLDER = "{contact}";
+        private const string DURATION_PLACEHOLDER = "{duration}";
+        private const string DATE_TIME_FORMAT = "yyyy-MM-dd HH.mm.ss";
+        private const string DURATION_FORMAT = @"hh\.mm\.ss";
 
         /// <summary>
         /// File name where application settings are stored.
         /// </summary>
-        private static readonly string SettingsFileName;
+        private static readonly string _settingsFileName;
 
         /// <summary>
         /// Available sound sample frequencies.
         /// </summary>
-        private static readonly List<string> AvailableSoundSampleFrequencies = new List<string> { "32", "44.1", "48" };
+        private static readonly List<string> _availableSoundSampleFrequencies = new List<string> { "32", "44.1", "48" };
 
         /// <summary>
         /// Available sound bitrates.
         /// </summary>
-        private static readonly List<string> AvailableSoundBitrates = new List<string> { "192", "256", "320" };
+        private static readonly List<string> _availableSoundBitrates = new List<string> { "192", "256", "320" };
 
         /// <summary>
         /// Default pattern for name of the recorded file.
         /// </summary>
-        public const string DefaultFileName = "{date-time} {contact}.mp3";
+        public const string DEFAULT_FILE_NAME = "{date-time} {contact}.mp3";
 
         /// <summary>
         /// Folder where application settings are stored.
@@ -42,7 +43,7 @@ namespace SkypeAutoRecorder.Configuration
         /// <summary>
         /// The application name.
         /// </summary>
-        public const string ApplicationName = "SkypeAutoRecorder";
+        public const string APPLICATION_NAME = "SkypeAutoRecorder";
 
         /// <summary>
         /// Initializes the <see cref="Settings"/> class. Loads saved settings or creates new.
@@ -51,13 +52,13 @@ namespace SkypeAutoRecorder.Configuration
         {
             SettingsFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SkypeAutoRecorder");
-            SettingsFileName = Path.Combine(SettingsFolder, "Settings.xml");
+            _settingsFileName = Path.Combine(SettingsFolder, "Settings.xml");
 
-            if (File.Exists(SettingsFileName))
+            if (File.Exists(_settingsFileName))
             {
                 // Load settings from XML.
                 var serializer = new XmlSerializer(typeof(Settings));
-                using (var reader = new StreamReader(SettingsFileName))
+                using (var reader = new StreamReader(_settingsFileName))
                 {
                     try
                     {
@@ -123,16 +124,17 @@ namespace SkypeAutoRecorder.Configuration
             // Check if file name is missing. Add default one.
             if (string.IsNullOrEmpty(Path.GetFileName(fileName)))
             {
-                fileName += DefaultFileName;
+                fileName += DEFAULT_FILE_NAME;
             }
 
             // Add extension if its missing.
             fileName = Path.ChangeExtension(fileName, "mp3");
 
             // Replace placeholders.
-            fileName = fileName.Replace(DateTimePlaceholder, dateTime.ToString(DateTimeFormat));
-            fileName = fileName.Replace(DurationPlaceholder, duration.ToString(DurationFormat));
-            return fileName.Replace(ContactPlaceholder, contact);
+            fileName = fileName.Replace(DATE_TIME_PLACEHOLDER, dateTime.ToString(DATE_TIME_FORMAT));
+            fileName = fileName.Replace(DURATION_PLACEHOLDER, duration.ToString(DURATION_FORMAT));
+            fileName = fileName.Replace(CONTACT_PLACEHOLDER, contact);
+            return fileName.GetSafeFileName();
         }
 
         /// <summary>
@@ -141,7 +143,7 @@ namespace SkypeAutoRecorder.Configuration
         public static void Save()
         {
             // Create directory for application settings if it doesn't exists.
-            var path = Path.GetDirectoryName(SettingsFileName);
+            var path = Path.GetDirectoryName(_settingsFileName);
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -149,7 +151,7 @@ namespace SkypeAutoRecorder.Configuration
 
             // Save settings to XML.
             var serializer = new XmlSerializer(typeof(Settings));
-            using (var writer = new StreamWriter(SettingsFileName))
+            using (var writer = new StreamWriter(_settingsFileName))
             {
                 serializer.Serialize(writer, Current);
             }

@@ -65,64 +65,43 @@ namespace SkypeAutoRecorder.Core
         private void invokeConnected()
         {
             var handler = Connected;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            handler?.Invoke(this, EventArgs.Empty);
         }
 
         private void invokeDisconnected()
         {
             var handler = Disconnected;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            handler?.Invoke(this, EventArgs.Empty);
         }
 
         private void invokeConversationStarted(ConversationEventArgs e)
         {
             var handler = ConversationStarted;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            handler?.Invoke(this, e);
         }
 
         private void invokeConversationEnded(ConversationEventArgs e)
         {
             var handler = ConversationEnded;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            handler?.Invoke(this, e);
         }
 
         private void invokeRecordingStarted(RecordingEventArgs e)
         {
             var handler = RecordingStarted;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            handler?.Invoke(this, e);
         }
 
         private void invokeRecordingStopped(RecordingEventArgs e)
         {
             var handler = RecordingStopped;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            handler?.Invoke(this, e);
         }
 
         private void invokeRecordingCanceled(RecordingEventArgs e)
         {
             var handler = RecordingCanceled;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            handler?.Invoke(this, e);
         }
     }
 }

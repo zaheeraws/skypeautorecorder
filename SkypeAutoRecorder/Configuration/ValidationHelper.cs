@@ -47,9 +47,8 @@ namespace SkypeAutoRecorder.Configuration
         public static bool InputsAreValid(DependencyObject parent)
         {
             // Check parent and all child object for validation errors.
-            return !Validation.GetHasError(parent) && 
-                LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>().All(InputsAreValid);
+            return !Validation.GetHasError(parent) &&
+                   LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>().All(InputsAreValid);
         }
-
     }
 }

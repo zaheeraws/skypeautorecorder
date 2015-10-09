@@ -8,8 +8,8 @@ namespace SkypeAutoRecorder.Core.Sound
     /// </summary>
     internal class SoundProcessor
     {
-        private static readonly string SoxPath;
-        private static readonly string LamePath;
+        private static readonly string _soxPath;
+        private static readonly string _lamePath;
 
         /// <summary>
         /// Initializes the <see cref="SoundProcessor"/> class.
@@ -19,8 +19,8 @@ namespace SkypeAutoRecorder.Core.Sound
             var currentLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
             
             // Get the path for Sox and Lame external applications used for sound processing.
-            SoxPath = Path.Combine(currentLocation, "Tools\\Sox\\sox.exe");
-            LamePath = Path.Combine(currentLocation, "Tools\\Lame\\lame.exe");
+            _soxPath = Path.Combine(currentLocation, @"Tools\Sox\sox.exe");
+            _lamePath = Path.Combine(currentLocation, @"Tools\Lame\lame.exe");
         }
 
         /// <summary>
@@ -36,9 +36,8 @@ namespace SkypeAutoRecorder.Core.Sound
             string channel1FileName, string channel2FileName, string resultFileName, bool separateChannels)
         {
             var mode = separateChannels ? "-M" : "-m";
-            var arguments =
-                mode + " \"" + channel1FileName + "\" \"" + channel2FileName + "\" \"" + resultFileName + "\"";
-            return runProcess(SoxPath, arguments);
+            var arguments = $@"{mode} ""{channel1FileName}"" ""{channel2FileName}"" ""{resultFileName}""";
+            return runProcess(_soxPath, arguments);
         }
 
         /// <summary>
@@ -54,9 +53,9 @@ namespace SkypeAutoRecorder.Core.Sound
         public static bool EncodeMp3(string wavFileName, string mp3FileName, int volumeScale,
             bool highQuality, string sampleFrequency = null, string bitrate = null)
         {
-            var mode = highQuality ? ("--resample " + sampleFrequency + " -b " + bitrate) : "-V0";
-            var arguments = mode + " --scale " + volumeScale + " \"" + wavFileName + "\" \"" + mp3FileName + "\"";
-            return runProcess(LamePath, arguments);
+            var mode = highQuality ? $"--resample {sampleFrequency} -b {bitrate}" : "-V0";
+            var arguments = $@"{mode} --scale {volumeScale} ""{wavFileName}"" ""{mp3FileName}""";
+            return runProcess(_lamePath, arguments);
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -30,7 +29,7 @@ namespace SkypeAutoRecorder.Core
             _windowHandleSource.AddHook(apiMessagesHandler);
 
             // Initialize watcher.
-            _skypeWatcher = new Timer(WatchInterval);
+            _skypeWatcher = new Timer(WATCH_INTERVAL);
             _skypeWatcher.Elapsed += skypeWatcherHandler;
         }
 
@@ -115,8 +114,8 @@ namespace SkypeAutoRecorder.Core
             CallInFileName = callInFileName;
             CallOutFileName = callOutFileName;
 
-            var recordInCommand = string.Format(SkypeCommands.StartRecordInput, _currentCallNumber, callInFileName);
-            var recordOutCommand = string.Format(SkypeCommands.StartRecordOutput, _currentCallNumber, callOutFileName);
+            var recordInCommand = string.Format(SkypeCommands.START_RECORD_INPUT, _currentCallNumber, callInFileName);
+            var recordOutCommand = string.Format(SkypeCommands.START_RECORD_OUTPUT, _currentCallNumber, callOutFileName);
 
             sendSkypeCommand(recordInCommand);
             sendSkypeCommand(recordOutCommand);
@@ -162,8 +161,8 @@ namespace SkypeAutoRecorder.Core
 
         private void sendStopRecordingCommands()
         {
-            var endRecordInCommand = string.Format(SkypeCommands.EndRecordInput, _currentCallNumber);
-            var endRecordOutCommand = string.Format(SkypeCommands.EndRecordOutput, _currentCallNumber);
+            var endRecordInCommand = string.Format(SkypeCommands.END_RECORD_INPUT, _currentCallNumber);
+            var endRecordOutCommand = string.Format(SkypeCommands.END_RECORD_OUTPUT, _currentCallNumber);
 
             sendSkypeCommand(endRecordInCommand);
             sendSkypeCommand(endRecordOutCommand);
@@ -204,20 +203,20 @@ namespace SkypeAutoRecorder.Core
 #endif
 
             // Status online.
-            if (message == SkypeMessages.ConnectionStatusOnline && !ConversationIsActive)
+            if (message == SkypeMessages.CONNECTION_STATUS_ONLINE && !ConversationIsActive)
             {
                 connect();
                 return;
             }
 
             // Status offline.
-            if (message == SkypeMessages.ConnectionStatusOffline)
+            if (message == SkypeMessages.CONNECTION_STATUS_OFFLINE)
             {
                 disconnect();
                 return;
             }
 
-            if (message == SkypeMessages.Pong)
+            if (message == SkypeMessages.PONG)
             {
                 _lastPong = DateTime.Now;
                 return;
@@ -235,7 +234,7 @@ namespace SkypeAutoRecorder.Core
                 _currentCallNumber = newCallNumber;
 
                 // Ask Skype for caller name.
-                sendSkypeCommand(string.Format(SkypeCommands.GetCallerName, _currentCallNumber));
+                sendSkypeCommand(string.Format(SkypeCommands.GET_CALLER_NAME, _currentCallNumber));
                 return;
             }
 

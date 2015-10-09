@@ -5,8 +5,8 @@
     /// </summary>
     internal static class SkypeMessages
     {
-        public const string ConnectionStatusOnline  = "CONNSTATUS ONLINE";
-        public const string ConnectionStatusOffline = "CONNSTATUS OFFLINE";
-        public const string Pong                    = "PONG";
+        public const string CONNECTION_STATUS_ONLINE  = "CONNSTATUS ONLINE";
+        public const string CONNECTION_STATUS_OFFLINE = "CONNSTATUS OFFLINE";
+        public const string PONG                      = "PONG";
     }
 }
